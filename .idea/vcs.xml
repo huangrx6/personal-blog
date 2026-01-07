@@ -7,6 +7,7 @@
     </profile>
   </component>
   <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/2023/blog-web" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/2024/blog-web-v2" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/2026/blog-2026-mod-cartoon" vcs="Git" />
