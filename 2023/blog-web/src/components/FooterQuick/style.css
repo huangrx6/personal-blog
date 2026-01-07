@@ -1,0 +1,51 @@
+@import "../../style.css";
+
+.footer-quick div:nth-child(1){
+    border-radius: 0.5rem !important;
+}
+
+.footer-quick div button:nth-child(1) {
+
+}
+
+.footer-quick div button:nth-child(2) {
+    display: none;
+}
+
+.footer-quick div button:nth-child(3) {
+    display: none;
+}
+
+.footer-quick .active {
+    display: block !important;
+}
+
+.footer-quick .ant-float-btn-square:first-child {
+
+}
+
+.footer-quick .ant-float-btn-square:last-child {
+
+}
+
+.footer-quick .ant-float-btn-default {
+    background-color: var(--black-1b);
+    border: 1px solid var(--white-219-30) !important;
+    border-radius: 0.5rem !important;
+}
+
+.footer-quick .ant-float-btn-group-square-shadow {
+    box-shadow: none !important;
+}
+
+.footer-quick .ant-float-btn-body {
+    background-color: var(--black-1b) !important;
+}
+
+.footer-quick .ant-float-btn-icon {
+    color: var(--white) !important;
+}
+
+.footer-quick .ant-float-btn-icon:hover {
+    color: var(--blue) !important;
+}

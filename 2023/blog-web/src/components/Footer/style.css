@@ -1,0 +1,142 @@
+@import "../../style.css";
+
+.footer {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+
+  /*min-height: 15rem;*/
+  /*max-height: 15rem;*/
+  /*display: grid;*/
+  /*grid-template-rows: repeat(2, 1fr);*/
+}
+
+.footer-container {
+  width: 100%;
+  text-align: center;
+  color: var(--white);
+  font-size: 1.2rem;
+  font-family: var(--zhuziawan);
+  background: var(--black-1b);
+
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+  padding: 1rem 0;
+  /*position: absolute;*/
+  /*bottom: 0;*/
+}
+
+.footer-waves {
+  position:absolute;
+  text-align:center;
+  color: var(--white);
+
+  min-height: 15rem;
+  max-height: 15rem;
+  top: 0;
+  width: 100%;
+  /*需要调颜色*/
+  background-color: var(--black-1b);
+}
+.footer-waves-body {
+  position:relative;
+  width: 100%;
+
+  min-height: 10rem;
+  max-height: 10rem;
+
+  border-top: none;
+}
+
+/* Animation */
+.footer-waves-parallax > use {
+  animation: move-forever 25s cubic-bezier(.55,.5,.45,.5)     infinite;
+}
+.footer-waves-parallax > use:nth-child(1) {
+  animation-delay: -2s;
+  animation-duration: 7s;
+}
+.footer-waves-parallax > use:nth-child(2) {
+  animation-delay: -3s;
+  animation-duration: 10s;
+}
+.footer-waves-parallax > use:nth-child(3) {
+  animation-delay: -4s;
+  animation-duration: 13s;
+}
+.footer-waves-parallax > use:nth-child(4) {
+  animation-delay: -5s;
+  animation-duration: 20s;
+}
+@keyframes move-forever {
+  0% {
+    transform: translate3d(-90px,0,0);
+  }
+  100% {
+    transform: translate3d(85px,0,0);
+  }
+}
+
+/*====================
+ record
+ ===================*/
+.footer-record {
+  margin: 0;
+  justify-self: center;
+}
+
+.footer-record a {
+  /*清除a标签默认样式*/
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.footer-record button {
+  background-color: transparent;
+  border: none;
+  margin: 0;
+  color: var(--white);
+  font-size: 1.2rem;
+  cursor: pointer;
+  text-align: center;
+}
+
+.footer-record button:hover, .footer-record-body h5:hover {
+  color: var(--blue);
+}
+
+.footer-record-body-title {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.footer-record-body-link {
+  margin: 1.5rem 0;
+}
+
+.footer-record-text {
+  font-size: 0.625rem;
+}
+
+/*====================
+ emoticon
+ ===================*/
+.footer-emoticon {
+
+}
+
+.footer-emoticon > div {
+  height: 6rem;
+  width: 6rem;
+}
+
+.footer-emoticon-right {
+  justify-self: end;
+}

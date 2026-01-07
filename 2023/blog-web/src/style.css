@@ -1,0 +1,123 @@
+:root.light {
+    /*颜色*/
+    --black-10: #ffffff;
+    --black-1b: #FAFBFB;
+    --black-1d: #ffffff;
+    --black-22: #b9b9b9;
+    --black-2b: #ffffff;
+    --black-31: #ffffff;
+    --black-46: #656565;
+    --white-fa: #fafafa;
+    --white-219-30: rgba(0, 0, 0, 0.3);
+    --white-219-60: rgba(0, 0, 0, 0.6);
+    --white: #000000;
+    --shadow-80: hsla(0, 100%, 100%, 0.8);
+    --red-f80: #ff8080;
+    --red: #f64f59;
+    --pink: rgb(220 39 55);
+    --light-pink: rgba(255,169,175,.15);
+    /*--blue: #6190e8;*/
+    --blue: rgba(108, 180, 149, 0.7);
+    --blue-117: rgba(89, 133, 215, 0.82);
+    --blue-192b45: #19245b;
+    --purple: #9398b3;
+    --purple-main: rgba(195,165,245);
+    --purple-main-10: rgba(195,165,245,.1);
+    --purple-dark-violet: rgba(195,165,245);
+    --green-63: rgba(136, 160, 125, 0.63);
+    --article: #ffffff;
+    --text: #000000;
+    /*间距高度*/
+    --padding-td: 2rem;
+    --padding-middle: 1.5rem;
+    --padding-lr: 1rem;
+    /*字体*/
+    --blogFont: "blog-font-1", sans-serif;
+    --zhuziawan: "zhuziawan", sans-serif;
+
+}
+
+/*手动暗黑*/
+:root.dark {
+    /*颜色*/
+    --black-10: #101010;
+    --black-1b: #1d1d1d;
+    --black-1d: #1b1b1b;
+    --black-22: #222222;
+    --black-2b: #2b2b2b;
+    --black-31: #313131;
+    --black-46: #464646;
+    --white-fa: rgba(27, 27, 27, 0.992);
+    --white-219-30: rgb(219, 219, 219, 30%);
+    --white-219-60: rgb(219, 219, 219, 60%);
+    --white: #FFFFFF;
+    --shadow-80: hsla(0, 100%, 100%, 0.8);
+    --red-f80: #ff8080;
+    --red: #f64f59;
+    --pink: rgb(255 169 175);
+    --light-pink: rgba(255,169,175,.15);
+    /*--blue: #6190e8;*/
+    --blue: rgba(141, 231, 176, 0.71);
+    --blue-117: rgba(144, 171, 224, 0.74);
+    --blue-192b45: #19245b;
+    --purple: #9398b3;
+    --purple-main: rgba(195,165,245);
+    --purple-main-10: rgba(195,165,245);
+    --purple-dark-violet: rgb(105, 45, 202);
+    --green-63: rgba(136, 160, 125, 0.63);
+    --article: #ffffff;
+    --text: #000000;
+    /*间距高度*/
+    --padding-td: 2rem;
+    --padding-middle: 1.5rem;
+    --padding-lr: 1rem;
+    /*字体*/
+    --blogFont: "blog-font-1", sans-serif;
+    --zhuziawan: "zhuziawan", sans-serif;
+}
+
+/*系统暗黑*/
+@media (prefers-color-scheme: dark) {
+    :root.dark
+}
+
+/*=============================================字体==============================================*/
+@font-face {
+    font-family: "blog-font-1";
+    font-weight: 400;
+    src: url("assets/font/blog-font-1.ttf");
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "zhuziawan";
+    font-weight: 400;
+    src: url("assets/font/zhuziawan.ttc");
+    font-display: swap;
+}
+
+/*===============================================全局共用=============================================*/
+* {
+    box-sizing: border-box;
+}
+
+/*一键置为灰色*/
+html {
+    /*filter: grayscale(100%);*/
+}
+
+body {
+    margin: 0;
+}
+
+body::-webkit-scrollbar {
+    display: none;
+}
+
+.app {
+
+}
+
+.container {
+
+}

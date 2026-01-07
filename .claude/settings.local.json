@@ -6,7 +6,9 @@
       "Skill(ui-ux-pro-max)",
       "Bash(python3:*)",
       "Bash(npx create-next-app@latest:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(git submodule status:*)",
+      "Bash(git config:*)"
     ]
   }
 }

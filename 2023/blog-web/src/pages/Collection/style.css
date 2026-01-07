@@ -1,0 +1,134 @@
+@import "../../style.css";
+
+.collection {
+    overflow: hidden;
+    background-color: var(--black-1b);
+    height: 100vh;
+    width: 100vw;
+}
+
+.collection-layout {
+    background: var(--black-1b) !important;
+    display: flex;
+    justify-content: space-between;
+}
+
+.collection-layout-sider {
+    z-index: 99;
+    width: 200px;
+    min-width: 200px;
+    height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.collection-layout-sider-top {
+    height: 80px;
+    width: 200px;
+    background-color: black;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    color: white;
+}
+
+.collection-layout-sider-top img {
+    width: 50px;
+}
+
+.collection-layout-sider-top .collection-lst-right {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.collection-lstr-icon:hover {
+    cursor: pointer;
+    color: var(--blue);
+}
+
+.collection-layout-sider-bottom {
+    height: 80px;
+    bottom: 0;
+    width: 200px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    color: black;
+    background-color: white;
+}
+
+.collection-layout-sider-bottom a {
+    cursor: pointer;
+    outline: none;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--padding-lr);
+    font-size: 1rem;
+    font-family: inherit;
+    color: black;
+    transition: 0.3s ease all;
+    text-decoration: none;
+}
+
+.collection-layout-sider-bottom a:hover {
+    border-color: var(--purple);
+    background: var(--purple);
+    color: var(--black-1b);
+}
+
+.collection-layout-sider-bottom a:active {
+    border-color: var(--purple);
+    background: linear-gradient(var(--purple), var(--purple));
+    color: var(--purple);
+}
+
+.collection-layout-sider-content {
+    flex-grow: 1;
+    background-color: white !important;
+    padding-top: 1rem;
+    overflow-y: auto !important;
+}
+
+.collection-layout-sider-close {
+    visibility: hidden;
+    display: none;
+}
+
+.collection-layout-sider-open {
+    visibility: hidden;
+    display: none;
+    z-index: 99;
+    color: var(--white);
+    position: fixed;
+    font-size: 1.2rem;
+    width: 100vw;
+    background-color: var(--black-1b);
+    padding: 1rem 1rem;
+
+}
+
+.collection-layout-sider-open:hover {
+    cursor: pointer;
+    color: var(--blue);
+}
+
+.collection-lso-active {
+    visibility: visible;
+    display: block;
+}
+
+.collection-layout-content {
+    height: 100vh;
+    flex-grow: 1;
+    background-color: var(--black-1b);
+    overflow-y: auto;
+}
+
+.collection-layout-content::-webkit-scrollbar {
+    display: none;
+}
