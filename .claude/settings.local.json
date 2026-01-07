@@ -8,7 +8,10 @@
       "Bash(npx create-next-app@latest:*)",
       "Bash(npm run build:*)",
       "Bash(git submodule status:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(ls:*)",
+      "Bash(test:*)"
     ]
   }
 }
