@@ -54,18 +54,71 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// Post status enum
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  OFFLINE
+}
+
+// Category model
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?  @db.VarChar(500)
+  color       String   @default("#0EA5E9")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  posts       Post[]
+}
+
 model Post {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   title     String
-  slug      String   @unique
-  content   String   @db.LongText
-  published Boolean  @default(false)
+  slug      String     @unique
+  content   String     @db.LongText
+  status    PostStatus @default(DRAFT)
   
   authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
+  author    User       @relation(fields: [authorId], references: [id])
+  
+  categoryId String?
+  category   Category?  @relation(fields: [categoryId], references: [id])
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
   @@fulltext([title, content])
 }
+
+// Site-wide settings (singleton pattern - only one row)
+model SiteSettings {
+  id                  String   @id @default("default")
+  
+  // Site Info
+  siteName            String   @default("Blog 2026")
+  siteDescription     String   @default("A creative personal blog") @db.VarChar(500)
+  author              String   @default("")
+  
+  // Social Links
+  githubUrl           String   @default("")
+  twitterUrl          String   @default("")
+  emailAddress        String   @default("")
+  weiboUrl            String   @default("")
+  
+  // Appearance
+  fontStyle           String   @default("system")  // "system" | "comic" | "zcool" | "mashan" | "longcang"
+  primaryColor        String   @default("#0EA5E9")
+  mouseFollowEnabled  Boolean  @default(true)
+  cursorStyle         String   @default("blob")  // "blob" | "sparkle" | "rainbow" | "trail"
+  highPerformanceMode Boolean  @default(false)
+  
+  // Feature Toggles
+  commentsEnabled     Boolean  @default(false)
+  showReadingTime     Boolean  @default(true)
+  
+  // Metadata
+  updatedAt           DateTime @updatedAt
+}
+
