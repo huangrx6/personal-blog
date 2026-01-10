@@ -1,59 +1,68 @@
 @import "tailwindcss";
 
 :root {
-  /* Fresh Air & Lively Palette (Pro Max) */
+  /* Slush-Inspired Neo-Brutalist Palette */
 
-  /* Main Background: Pure White / Canvas */
+  /* Main Background: Pure White */
   --background: 0 0% 100%;
-  /* #FFFFFF */
   --foreground: 0 0% 0%;
-  /* Black Text for Contrast */
 
-  /* Surface / Card */
+  /* Color Accents (Vibrant & Solid) */
+  /* Yellow: #FACC15 */
+  --primary: 48 96% 53%;
+  --primary-foreground: 0 0% 0%;
+
+  /* Purple: #A855F7 */
+  --secondary: 271 91% 65%;
+  --secondary-foreground: 0 0% 100%;
+
+  /* Blue: #3B82F6 */
+  --accent: 217 91% 60%;
+  --accent-foreground: 0 0% 100%;
+
+  /* Orange: #FB923C */
+  --highlight: 27 96% 61%;
+  --highlight-foreground: 0 0% 0%;
+
+  /* UI Elements */
   --card: 0 0% 100%;
-  /* White */
   --card-foreground: 0 0% 0%;
 
-  /* Popovers */
   --popover: 0 0% 100%;
   --popover-foreground: 0 0% 0%;
 
-  /* Primary: Clear Blue Sky */
-  --primary: 199 89% 48%;
-  /* #0EA5E9 - Sky 500 */
-  --primary-foreground: 0 0% 100%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 45%;
 
-  /* Secondary: Lively Lime */
-  --secondary: 84 81% 44%;
-  /* #84CC16 - Lime 500 */
-  --secondary-foreground: 0 0% 0%;
-
-  /* Muted / Neutral: Cool Slate */
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215 16% 47%;
-
-  /* Accent: Pop Rose */
-  --accent: 343 87% 60%;
-  /* #F43F5E - Rose 500 */
-  --accent-foreground: 0 0% 100%;
-
-  /* Destructive: Red */
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
 
-  /* Borders & Inputs */
   --border: 0 0% 0%;
-  /* Black Border for Mod Cartoon Structure */
+  /* Pure Black Borders */
   --input: 0 0% 0%;
-  --ring: 199 89% 48%;
+  --ring: 0 0% 0%;
 
-  /* Radius */
-  --radius: 0.75rem;
+  --radius: 1rem;
+  /* Large pill radius */
 
-  /* Dynamic Fonts Defaults */
+  /* Fonts */
   --font-dynamic-en: var(--font-work-sans);
   --font-dynamic-cn: var(--font-zcool);
   --font-dynamic-cartoon: var(--font-bangers);
+}
+
+@keyframes aurora {
+  from {
+    background-position: 50% 50%, 50% 50%;
+  }
+
+  to {
+    background-position: 350% 50%, 350% 50%;
+  }
+}
+
+.animate-aurora {
+  animation: aurora 60s linear infinite;
 }
 
 @theme inline {
@@ -72,11 +81,14 @@
   --color-secondary: hsl(var(--secondary));
   --color-secondary-foreground: hsl(var(--secondary-foreground));
 
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
-
   --color-accent: hsl(var(--accent));
   --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-highlight: hsl(var(--highlight));
+  --color-highlight-foreground: hsl(var(--highlight-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
 
   --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
@@ -89,30 +101,23 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 
-  --font-heading: var(--font-outfit);
-  /* Use dynamic font stack for sans */
-  --font-sans: var(--font-dynamic-en), var(--font-dynamic-cn), sans-serif;
-  /* Cartoon font - also dynamic! */
-  --font-cartoon: var(--font-dynamic-cartoon);
-
-  /* Neo-Brutalism Shadows */
-  --shadow-neo: 4px 4px 0px 0px rgba(0, 0, 0, 1);
-  --shadow-neo-lg: 8px 8px 0px 0px rgba(0, 0, 0, 1);
-  --shadow-neo-sm: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+  --shadow-neo: 5px 5px 0px 0px rgba(0, 0, 0, 1);
+  --shadow-neo-lg: 10px 10px 0px 0px rgba(0, 0, 0, 1);
+  --shadow-neo-sm: 3px 3px 0px 0px rgba(0, 0, 0, 1);
+  --shadow-neo-xl: 15px 15px 0px 0px rgba(0, 0, 0, 1);
 }
 
 /* Base Styles */
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border select-none;
   }
 
   body {
-    @apply bg-background text-foreground;
-    /* Font family is controlled by data-font-style attribute selectors below */
+    @apply bg-background text-foreground select-none;
   }
 
-  /* Force font inheritance on all form elements and buttons */
+  /* Force font inheritance */
   input,
   textarea,
   button,
@@ -120,362 +125,91 @@
     font-family: inherit;
   }
 
-  /* Font Style System - Single unified font selector */
+  /* Font Style System */
   body[data-font-style="system"] {
     font-family: "PingFang SC", "Microsoft YaHei", "Heiti SC", var(--font-outfit), sans-serif;
   }
 
   body[data-font-style="comic"] {
-    font-family: var(--font-comic-neue), var(--font-outfit), sans-serif;
+    font-family: var(--font-comic-neue), "Comic Sans MS", "Chalkboard SE", sans-serif;
   }
 
   body[data-font-style="zcool"] {
-    font-family: "ZCOOL KuaiLe", var(--font-zcool), sans-serif;
+    font-family: var(--font-zcool), "Microsoft YaHei", sans-serif;
   }
 
   body[data-font-style="mashan"] {
-    font-family: "Ma Shan Zheng", var(--font-mashan), sans-serif;
+    font-family: var(--font-mashan), cursive;
   }
 
   body[data-font-style="longcang"] {
-    font-family: "Long Cang", var(--font-longcang), sans-serif;
+    font-family: var(--font-longcang), cursive;
   }
 
-  /* Default font when no data-font-style is set */
   body:not([data-font-style]) {
     font-family: "PingFang SC", "Microsoft YaHei", "Heiti SC", var(--font-outfit), sans-serif;
   }
 
-  /* Global Selection Color */
   ::selection {
-    @apply bg-secondary text-black;
+    @apply bg-primary text-black;
   }
 }
 
-/* Components Layer for reusable Neo-brutalist classes */
+/* Reusable Neo-Brutalist Classes */
 @layer components {
   .neo-border {
     @apply border-2 border-black;
   }
 
   .neo-shadow {
-    @apply shadow-neo hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all duration-200;
-  }
-
-  .neo-shadow-static {
-    @apply shadow-neo;
+    @apply shadow-neo hover:shadow-neo-lg hover:-translate-y-1 transition-all duration-200;
   }
 
   .neo-card {
-    @apply border-2 border-black rounded-lg shadow-neo bg-card text-card-foreground;
+    @apply border-2 md:border-3 border-black rounded-3xl shadow-neo bg-card text-card-foreground;
   }
 
-  .neo-input {
-    @apply border-2 border-black rounded-md shadow-neo-sm focus-visible:ring-0 focus-visible:shadow-none focus-visible:translate-x-[2px] focus-visible:translate-y-[2px] transition-all;
+  .neo-button {
+    @apply bg-black text-white font-bold py-3 px-6 rounded-full hover:scale-105 transition-transform;
+  }
+
+  /* Text Outline Utility */
+  .text-outline {
+    -webkit-text-stroke: 2px black;
+    color: transparent;
+  }
+
+  .text-outline-white {
+    -webkit-text-stroke: 2px white;
+    color: transparent;
   }
 }
 
-/* Custom Scrollbar - Neo-Brutal Style */
+/* Scrollbar */
+/* refined thinner scrollbar -> Hidden as per user request */
 @layer base {
-
-  /* Webkit browsers (Chrome, Safari, Edge) */
   ::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
+    width: 0px;
+    height: 0px;
+    background: transparent;
   }
 
   ::-webkit-scrollbar-track {
-    background: hsl(var(--muted));
-    border-radius: 6px;
+    background: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.6);
-    border-radius: 6px;
-    border: 2px solid hsl(var(--muted));
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.8);
-  }
-
-  /* Code block scrollbar - smaller and darker */
-  pre::-webkit-scrollbar,
-  .code-scrollbar::-webkit-scrollbar {
-    height: 8px;
-  }
-
-  pre::-webkit-scrollbar-track,
-  .code-scrollbar::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-  }
-
-  pre::-webkit-scrollbar-thumb,
-  .code-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 4px;
-  }
-
-  pre::-webkit-scrollbar-thumb:hover,
-  .code-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
-  }
-
-  /* Firefox */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.6) hsl(var(--muted));
+    background: transparent;
+    border: none;
   }
 }
 
-/* Floating animations for mascots */
-@keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0px) rotate(-2deg);
-  }
-
-  50% {
-    transform: translateY(-15px) rotate(2deg);
-  }
-}
-
-@keyframes float-delayed {
-
-  0%,
-  100% {
-    transform: translateY(0px) rotate(2deg);
-  }
-
-  50% {
-    transform: translateY(-12px) rotate(-2deg);
-  }
-}
-
-.animate-float {
-  animation: float 4s ease-in-out infinite;
-}
-
-.animate-float-delayed {
-  animation: float-delayed 5s ease-in-out infinite;
-  animation-delay: 1s;
-}
-
-/* ============================================
-   高级视差 + 动漫风格 - 用户端专用样式
-   ============================================ */
-
-/* 用户端奶白背景 */
-.public-page {
-  --background-cream: 40 30% 98%;
-  /* #FCFAF2 奶白色 */
-  background-color: hsl(var(--background-cream));
-}
-
-/* 视差动画 Keyframes */
-@keyframes float-smooth {
-
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
-  }
-
-  25% {
-    transform: translateY(calc(-1 * var(--float-amplitude, 15px))) rotate(1deg);
-  }
-
-  50% {
-    transform: translateY(calc(-0.5 * var(--float-amplitude, 15px))) rotate(-1deg);
-  }
-
-  75% {
-    transform: translateY(calc(-0.8 * var(--float-amplitude, 15px))) rotate(0.5deg);
-  }
-}
-
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes pulse-glow {
-
-  0%,
-  100% {
-    box-shadow: 0 0 20px rgba(14, 165, 233, 0.3);
-  }
-
-  50% {
-    box-shadow: 0 0 40px rgba(14, 165, 233, 0.5);
-  }
-}
-
-@keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-/* 视差动画类 */
-@media (prefers-reduced-motion: no-preference) {
-  .animate-float {
-    animation: float-smooth 4s ease-in-out infinite;
-  }
-
-  .animate-slide-up {
-    animation: slide-up 0.6s ease-out forwards;
-  }
-
-  .animate-fade-in {
-    animation: fade-in 0.4s ease-out forwards;
-  }
-
-  .animate-pulse-glow {
-    animation: pulse-glow 3s ease-in-out infinite;
-  }
-
-  .animate-gradient {
-    background-size: 200% 200%;
-    animation: gradient-shift 8s ease infinite;
-  }
-}
-
-/* 禁用动画（尊重用户偏好） */
-@media (prefers-reduced-motion: reduce) {
-
-  .animate-float,
-  .animate-slide-up,
-  .animate-fade-in,
-  .animate-pulse-glow,
-  .animate-gradient {
-    animation: none;
-  }
-}
-
-/* 玻璃态组件样式 */
-@layer components {
-
-  /* 玻璃态卡片 */
-  .glass-card {
-    @apply bg-white/80 backdrop-blur-lg border-2 border-black/10 rounded-3xl;
-    box-shadow:
-      0 4px 30px rgba(0, 0, 0, 0.05),
-      inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  }
-
-  .glass-card-hover {
-    /* 展开 glass-card 样式避免循环引用 */
-    @apply bg-white/80 backdrop-blur-lg border-2 border-black/10 rounded-3xl transition-all duration-300 cursor-pointer;
-    box-shadow:
-      0 4px 30px rgba(0, 0, 0, 0.05),
-      inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  }
-
-  .glass-card-hover:hover {
-    @apply border-primary/30 -translate-y-1;
-    box-shadow:
-      0 8px 40px rgba(14, 165, 233, 0.1),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  }
-
-  /* 玻璃态导航栏 */
-  .glass-nav {
-    @apply bg-white/70 backdrop-blur-xl border-2 border-black/5;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
-  }
-
-  /* 视差区块 */
-  .parallax-section {
-    @apply relative w-full min-h-screen;
-  }
-
-  .parallax-section-sticky {
-    /* 展开 parallax-section 样式避免循环引用 */
-    @apply relative w-full min-h-screen sticky top-0 rounded-t-[3rem];
-    box-shadow: 0 -20px 60px -15px rgba(0, 0, 0, 0.1);
-  }
-
-  @media (min-width: 768px) {
-    .parallax-section-sticky {
-      @apply rounded-t-[4rem];
-    }
-  }
-
-  /* 悬浮卡片效果 */
-  .card-hover-lift {
-    @apply transition-all duration-300 cursor-pointer;
-  }
-
-  .card-hover-lift:hover {
-    @apply -translate-y-2;
-    box-shadow:
-      8px 8px 0px 0px rgba(0, 0, 0, 1),
-      0 20px 40px rgba(0, 0, 0, 0.1);
-  }
-
-  /* 霓虹边框（轻量版，适合卡通风格） */
-  .neon-border-primary {
-    box-shadow:
-      0 0 0 2px hsl(var(--primary)),
-      0 0 20px rgba(14, 165, 233, 0.3);
-  }
-
-  .neon-border-accent {
-    box-shadow:
-      0 0 0 2px hsl(var(--accent)),
-      0 0 20px rgba(244, 63, 94, 0.3);
-  }
-
-  /* 渐变文字 */
-  .text-gradient-primary {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
-  }
-
-  .text-gradient-accent {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--primary)) 100%);
-  }
-}
-
-/* 斜线背景动画 */
-@keyframes slide-diagonal {
-  from {
-    background-position: 0 0, 30px 30px;
-  }
-
-  to {
-    background-position: 60px 60px, 90px 90px;
-  }
-}
-
-.animate-slide-diagonal {
-  animation: slide-diagonal 20s linear infinite;
+/* Glassmorphism for Header */
+.glass-nav {
+  background: rgba(255, 255, 255, 0.95);
+  /* More opaque for frosted glass look */
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
 }

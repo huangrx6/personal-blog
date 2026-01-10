@@ -56,6 +56,16 @@ export async function POST(request: Request) {
         if (body.commentsEnabled !== undefined) updateData.commentsEnabled = body.commentsEnabled;
         if (body.showReadingTime !== undefined) updateData.showReadingTime = body.showReadingTime;
 
+        // About Page
+        if (body.weiboUrl !== undefined) updateData.weiboUrl = body.weiboUrl;
+        if (body.resumeUrl !== undefined) updateData.resumeUrl = body.resumeUrl;
+
+        // About Page
+        if (body.aboutHeroTitle2 !== undefined) updateData.aboutHeroTitle2 = body.aboutHeroTitle2;
+        if (body.aboutHeroDescription !== undefined) updateData.aboutHeroDescription = body.aboutHeroDescription;
+        if (body.aboutSkills !== undefined) updateData.aboutSkills = body.aboutSkills;
+        if (body.aboutVibeCards !== undefined) updateData.aboutVibeCards = body.aboutVibeCards;
+
         const settings = await prisma.siteSettings.upsert({
             where: { id: "default" },
             update: updateData,
@@ -75,6 +85,12 @@ export async function POST(request: Request) {
                 highPerformanceMode: body.highPerformanceMode ?? false,
                 commentsEnabled: body.commentsEnabled ?? false,
                 showReadingTime: body.showReadingTime ?? true,
+                // About defaults
+                aboutHeroTitle1: body.aboutHeroTitle1 ?? "不仅是",
+                aboutHeroTitle2: body.aboutHeroTitle2 ?? "开发者",
+                aboutHeroDescription: body.aboutHeroDescription ?? "我是一名热衷于创造极致用户体验的全栈开发者。\n游走于设计与代码之间，构建既好用又好看的数字产品。",
+                aboutSkills: body.aboutSkills ?? undefined,
+                aboutVibeCards: body.aboutVibeCards ?? undefined,
             }
         });
 

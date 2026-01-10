@@ -2,14 +2,19 @@
 
 import { motion } from "framer-motion";
 
+import { usePathname } from "next/navigation";
+
 export default function Template({ children }: { children: React.ReactNode }) {
+    const pathname = usePathname();
+
     // Cartoon "Bouncing & Morphing" Loader
     // We remove the initial delay so the loader appears immediately on mount (page navigation)
     // Then it slides out to reveal content.
     return (
         <>
             <motion.div
-                className="fixed inset-0 z-[100] bg-white pointer-events-none flex flex-col items-center justify-center gap-8"
+                key={pathname}
+                className="fixed inset-0 z-[9999] bg-white pointer-events-none flex flex-col items-center justify-center gap-8"
                 initial={{ y: 0 }}
                 animate={{ y: "-100%" }}
                 transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1], delay: 0.5 }} // Reduced delay: 1.2 -> 0.5s sufficient for effect but not annoying

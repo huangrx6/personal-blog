@@ -1,8 +1,8 @@
 "use client";
 
+import { cn } from '@/lib/utils/cn';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { cn } from '@/lib/utils/cn';
 import { CodeBlock } from './code-block';
 
 interface MarkdownRendererProps {
@@ -16,27 +16,43 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
             <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                    // Headings with neo-brutal style
-                    h1: ({ children }) => (
-                        <h1 className="text-4xl font-black tracking-tight mb-6 mt-10 first:mt-0 border-b-4 border-black pb-3">
-                            {children}
-                        </h1>
-                    ),
-                    h2: ({ children }) => (
-                        <h2 className="text-3xl font-black tracking-tight mb-4 mt-8">
-                            {children}
-                        </h2>
-                    ),
-                    h3: ({ children }) => (
-                        <h3 className="text-2xl font-bold mb-3 mt-6">
-                            {children}
-                        </h3>
-                    ),
-                    h4: ({ children }) => (
-                        <h4 className="text-xl font-bold mb-2 mt-4">
-                            {children}
-                        </h4>
-                    ),
+                    // Headings with neo-brutal style and IDs for TOC
+                    h1: ({ children }) => {
+                        const text = String(children);
+                        const id = text.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-');
+                        return (
+                            <h1 id={id} className="text-4xl font-black tracking-tight mb-6 mt-10 first:mt-0 border-b-4 border-black pb-3 scroll-mt-24">
+                                {children}
+                            </h1>
+                        );
+                    },
+                    h2: ({ children }) => {
+                        const text = String(children);
+                        const id = text.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-');
+                        return (
+                            <h2 id={id} className="text-3xl font-black tracking-tight mb-4 mt-8 scroll-mt-24">
+                                {children}
+                            </h2>
+                        );
+                    },
+                    h3: ({ children }) => {
+                        const text = String(children);
+                        const id = text.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-');
+                        return (
+                            <h3 id={id} className="text-2xl font-bold mb-3 mt-6 scroll-mt-24">
+                                {children}
+                            </h3>
+                        );
+                    },
+                    h4: ({ children }) => {
+                        const text = String(children);
+                        const id = text.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-');
+                        return (
+                            <h4 id={id} className="text-xl font-bold mb-2 mt-4 scroll-mt-24">
+                                {children}
+                            </h4>
+                        );
+                    },
 
                     // Paragraphs
                     p: ({ children }) => (

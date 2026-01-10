@@ -106,6 +106,7 @@ model SiteSettings {
   twitterUrl          String   @default("")
   emailAddress        String   @default("")
   weiboUrl            String   @default("")
+  resumeUrl           String   @default("")
   
   // Appearance
   fontStyle           String   @default("system")  // "system" | "comic" | "zcool" | "mashan" | "longcang"
@@ -118,7 +119,36 @@ model SiteSettings {
   commentsEnabled     Boolean  @default(false)
   showReadingTime     Boolean  @default(true)
   
+  // -- About Page Configuration --
+  
+  // Hero Section
+  aboutHeroTitle1      String   @default("不仅是")
+  aboutHeroTitle2      String   @default("开发者")
+  aboutHeroDescription String   @default("我是一名热衷于创造极致用户体验的全栈开发者。\n游走于设计与代码之间，构建既好用又好看的数字产品。") @db.VarChar(1000)
+  
+  // Skills Section (JSON list of {icon, title, desc})
+  aboutSkills          Json?    
+  
+  // Vibe Section (JSON list of {icon, title, desc, color, rot})
+  aboutVibeCards       Json?
+
   // Metadata
   updatedAt           DateTime @updatedAt
+}
+
+// Friend Links (Blogroll)
+model FriendLink {
+  id          String   @id @default(cuid())
+  name        String
+  description String?  @db.VarChar(500)
+  avatar      String?  @db.VarChar(1000)
+  url         String
+  active      Boolean  @default(true)
+  
+  // Style preference for the card (optional)
+  style       String   @default("neo") // "neo" | "holo" | "retro"
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 

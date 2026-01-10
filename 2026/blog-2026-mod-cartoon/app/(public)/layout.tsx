@@ -1,26 +1,27 @@
+import { ConditionalFooter } from "@/components/layout/conditional-footer";
 import { Header } from "@/components/layout/header";
+import { SmoothScrollProvider } from "@/components/providers/smooth-scroll";
+import { getSiteSettings } from "@/lib/actions";
 
-export default function PublicLayout({
+export default async function PublicLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const settings = await getSiteSettings();
+
     return (
-        <div className="public-page flex min-h-screen flex-col overflow-x-hidden">
-            {/* 浮动玻璃态导航 */}
-            <Header />
+        <SmoothScrollProvider>
+            <div className="public-page flex min-h-screen flex-col relative" style={{ overflowX: 'clip' }}>
+                <Header settings={settings} />
 
-            {/* 主内容 */}
-            <main className="flex-1 relative">
-                {children}
-            </main>
+                {/* Main content must be relative, z-10, and have a background to cover the footer */}
+                <main className="flex-1 relative z-10 bg-white shadow-2xl">
+                    {children}
+                </main>
 
-            {/* 简化的页脚 */}
-            <footer className="relative z-20 py-8 text-center text-sm text-black/40 bg-[#84CC16]">
-                <div className="max-w-7xl mx-auto px-6">
-                    <p className="text-black/60">© 2026 Creative Blog. Made with ❤️ and lots of ☕</p>
-                </div>
-            </footer>
-        </div>
+                <ConditionalFooter settings={settings} />
+            </div>
+        </SmoothScrollProvider>
     );
 }

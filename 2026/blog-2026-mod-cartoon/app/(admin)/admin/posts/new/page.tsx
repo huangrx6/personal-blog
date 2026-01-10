@@ -1,15 +1,15 @@
 "use client"
 
 import { createPost } from "@/actions/posts"
-import matter from "gray-matter"
-import { Save, Upload, Loader2, FileUp, Tag } from "lucide-react"
-import { useActionState, useState, useEffect } from "react"
+import { CategorySelect } from "@/components/admin/category-select"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { CategorySelect } from "@/components/admin/category-select"
+import matter from "gray-matter"
+import { FileUp, Loader2, Save, Tag, Upload } from "lucide-react"
+import { useActionState, useEffect, useState } from "react"
 
 interface Category {
     id: string;
@@ -100,7 +100,7 @@ export default function NewPostPage() {
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {state.message && (
-                            <div className="p-4 text-destructive-foreground bg-destructive/10 rounded border border-destructive/20">
+                            <div className="p-4 text-destructive bg-destructive/10 rounded border border-destructive/20 font-bold">
                                 {state.message}
                             </div>
                         )}

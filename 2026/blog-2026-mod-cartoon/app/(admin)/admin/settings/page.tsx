@@ -1,13 +1,31 @@
 "use client";
 
-import { FloatingShapes } from "@/components/ui/floating-shapes";
+import { ArrayEditor, IconSelector } from "@/components/admin/ArrayEditor";
+
+export const dynamic = 'force-dynamic';
+
+import { SettingsHeroDoodle } from "@/components/admin/settings-hero-doodle";
+import { useConfirmDialog } from "@/components/ui/confirm-dialog";
+// import { FloatingShapes } from "@/components/ui/floating-shapes";
+import { NeoSelect } from "@/components/ui/neo-select";
+import { motion } from "framer-motion";
 import {
-    Save, User, Globe, Smartphone, RotateCcw, Link2, Mail,
-    MessageSquare, Clock, Loader2, Check, Settings2, Sparkles, Palette
+    Check,
+    FileText,
+    Github,
+    LayoutTemplate,
+    Loader2,
+    Mail,
+    MessageSquare,
+    Palette,
+    RotateCcw,
+    Save,
+    Settings2, Sparkles,
+    Twitter,
+    User
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
+import { toast } from "sonner";
 
 interface SettingsData {
     siteName: string;
@@ -24,6 +42,14 @@ interface SettingsData {
     highPerformanceMode: boolean;
     commentsEnabled: boolean;
     showReadingTime: boolean;
+
+    // About Page
+    aboutHeroTitle1: string;
+    aboutHeroTitle2: string;
+    aboutHeroDescription: string;
+    aboutSkills: Array<{ icon: string; title: string; desc: string }>;
+    aboutVibeCards: Array<{ icon: string; title: string; desc: string; color: string; rot: number; textColor?: string; iconColor?: string; text?: string }>;
+    resumeUrl: string;
 }
 
 const defaultSettings: SettingsData = {
@@ -34,6 +60,7 @@ const defaultSettings: SettingsData = {
     twitterUrl: "",
     emailAddress: "",
     weiboUrl: "",
+    resumeUrl: "",
     fontStyle: "system",
     primaryColor: "#0EA5E9",
     mouseFollowEnabled: true,
@@ -41,6 +68,11 @@ const defaultSettings: SettingsData = {
     highPerformanceMode: false,
     commentsEnabled: false,
     showReadingTime: true,
+    aboutHeroTitle1: "不仅是",
+    aboutHeroTitle2: "开发者",
+    aboutHeroDescription: "我是一名热衷于创造极致用户体验的全栈开发者。\n游走于设计与代码之间，构建既好用又好看的数字产品。",
+    aboutSkills: [],
+    aboutVibeCards: [],
 };
 
 const cursorOptions = [
@@ -50,36 +82,27 @@ const cursorOptions = [
     { id: "trail", name: "气泡链", description: "渐变大小的跟随气泡", emoji: "🫧" },
 ];
 
-// Mascot speech bubbles based on settings state
-const getMascotSpeech = (settings: SettingsData): string => {
-    if (settings.cursorStyle === "rainbow") return "哇！彩虹好漂亮！🌈";
-    if (settings.cursorStyle === "sparkle") return "闪闪发光~✨ 魔法来啦！";
-    if (!settings.mouseFollowEnabled) return "嗯？鼠标效果关掉了？那我休息一下~";
-    if (settings.highPerformanceMode) return "性能模式启动！我要飞起来啦~🚀";
-    if (settings.fontStyle === "zcool") return "站酷快乐体超可爱的！Love it~";
-    if (settings.fontStyle === "comic") return "Comic字体也很不错呢！";
-    if (settings.commentsEnabled) return "评论功能开了！期待和大家互动~";
-    return "调整设置让博客更有个性吧！我在这里帮你~";
-};
-
 export default function SettingsPage() {
     const [settings, setSettings] = useState<SettingsData>(defaultSettings);
     const [originalSettings, setOriginalSettings] = useState<SettingsData>(defaultSettings);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
-    const [saveSuccess, setSaveSuccess] = useState(false);
 
+    // Hooks
+    const { confirm } = useConfirmDialog();
+
+    // Deep compare check (simple JSON stringify is enough for this size)
     const isDirty = JSON.stringify(settings) !== JSON.stringify(originalSettings);
 
-    // Fetch settings on mount
     useEffect(() => {
         async function fetchSettings() {
             try {
                 const response = await fetch('/api/settings');
                 if (response.ok) {
                     const data = await response.json();
-                    setSettings(data);
-                    setOriginalSettings(data);
+                    // Merge with defaults to ensure all fields exist
+                    setSettings({ ...defaultSettings, ...data });
+                    setOriginalSettings({ ...defaultSettings, ...data });
                 }
             } catch (error) {
                 console.error('Failed to fetch settings:', error);
@@ -90,7 +113,6 @@ export default function SettingsPage() {
         fetchSettings();
     }, []);
 
-    // Save settings
     const handleSave = async () => {
         setIsSaving(true);
         try {
@@ -102,128 +124,85 @@ export default function SettingsPage() {
             if (response.ok) {
                 const data = await response.json();
                 setOriginalSettings(data);
-                setSaveSuccess(true);
-                // Apply font change immediately
                 document.body.setAttribute('data-font-style', data.fontStyle);
-                setTimeout(() => setSaveSuccess(false), 2000);
+                toast.success("所有更改已保存", {
+                    description: "您的站点配置已更新生效。",
+                    icon: <Check className="w-5 h-5" />,
+                });
+            } else {
+                toast.error("保存失败", { description: "请稍后重试" });
             }
         } catch (error) {
             console.error('Failed to save settings:', error);
+            toast.error("保存失败", { description: "网络请求发生错误" });
         } finally {
             setIsSaving(false);
         }
     };
 
-    // Reset to defaults
     const handleReset = async () => {
-        if (confirm('重置所有设置为默认？')) {
+        const confirmed = await confirm({
+            title: "确认重置？",
+            message: "这将把所有设置恢复为默认状态，此操作无法撤销。",
+            confirmText: "确认重置",
+            variant: "danger",
+        });
+
+        if (confirmed) {
             setSettings(defaultSettings);
-            await fetch('/api/settings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(defaultSettings),
-            });
-            window.location.reload();
+
+            // Optional: Immediately save reset state or just let user save manually?
+            // Usually reset implies resetting to defaults locally, letting user decide to save.
+            // But code logic was saving immediately. Let's keep it consistent but maybe ask user?
+            // Actually, let's just reset local state to default and let them click save if they want, 
+            // OR fully reset backend too. The original code reset backend too.
+            // Let's stick to original behavior but add toast.
+
+            try {
+                await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(defaultSettings),
+                });
+                toast.success("已重置", { description: "所有设置已恢复默认。" });
+                window.location.reload();
+            } catch (e) {
+                toast.error("重置失败");
+            }
         }
     };
 
-    // Update helper
     const updateSetting = <K extends keyof SettingsData>(key: K, value: SettingsData[K]) => {
         setSettings(prev => ({ ...prev, [key]: value }));
     };
 
-    // Note: Loading state now handled by admin template.tsx
-    // No internal loading spinner needed
-
     return (
         <div className="space-y-8 relative min-h-[80vh] pb-24">
-            <FloatingShapes />
+            <SettingsHeroDoodle />
 
-            {/* Mascot Character - Fixed position on the right */}
-            <div className="hidden lg:block fixed right-8 bottom-8 z-30">
-                <motion.div
-                    className="relative"
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                >
-                    {/* Speech Bubble */}
-                    <motion.div
-                        className="absolute -top-20 -left-48 w-52 bg-white border-3 border-black rounded-2xl p-3 shadow-neo text-sm font-bold"
-                        key={getMascotSpeech(settings)}
-                        initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <p>{getMascotSpeech(settings)}</p>
-                        {/* Speech bubble tail */}
-                        <div className="absolute -bottom-2 right-8 w-4 h-4 bg-white border-r-3 border-b-3 border-black transform rotate-45"></div>
-                    </motion.div>
-
-                    {/* Mascot Image */}
-                    <Image
-                        src="/images/settings-mascot.png"
-                        alt="Settings Mascot"
-                        width={180}
-                        height={180}
-                        className="drop-shadow-lg"
-                    />
-                </motion.div>
-            </div>
-
-            {/* Header with Save Button - top offset for AdminHeader */}
-            <div className="flex items-center justify-between mb-8 sticky top-20 z-20 bg-white/80 backdrop-blur-lg rounded-2xl p-4 border-2 border-black/5 shadow-lg">
+            {/* Header */}
+            {/* Header */}
+            {/* Header */}
+            <div className="flex flex-col gap-4 mb-10">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center">
-                        <Settings2 className="w-6 h-6 text-white" />
+                    <div className="w-16 h-16 bg-black text-white rounded-2xl flex items-center justify-center shadow-neo transform -rotate-3">
+                        <Settings2 className="w-8 h-8 animate-spin-slow" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-black font-cartoon">系统设置</h1>
-                        <p className="text-black/50 text-sm font-medium">
-                            {isDirty ? "有未保存的更改" : "所有设置已保存"}
+                        <h1 className="text-4xl font-black uppercase tracking-tighter">
+                            系统设置
+                        </h1>
+                        <p className="font-bold text-black/60 mt-1">
+                            管理您的博客配置与个性化选项
                         </p>
                     </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={handleReset}
-                        className="text-sm font-bold text-red-500 flex items-center gap-2 hover:bg-red-50 px-4 py-2 rounded-lg transition-colors"
-                    >
-                        <RotateCcw className="w-4 h-4" />
-                        重置
-                    </button>
-
-                    <button
-                        onClick={handleSave}
-                        disabled={!isDirty || isSaving}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${isDirty
-                            ? 'bg-black text-white hover:bg-primary shadow-neo hover:shadow-none hover:translate-x-1 hover:translate-y-1'
-                            : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                            }`}
-                    >
-                        <AnimatePresence mode="wait">
-                            {isSaving ? (
-                                <motion.div key="saving" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                </motion.div>
-                            ) : saveSuccess ? (
-                                <motion.div key="success" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
-                                    <Check className="w-5 h-5" />
-                                </motion.div>
-                            ) : (
-                                <motion.div key="save" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                                    <Save className="w-5 h-5" />
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                        <span>{isSaving ? "保存中..." : saveSuccess ? "已保存!" : "保存更改"}</span>
-                    </button>
                 </div>
             </div>
 
             <div className="space-y-6">
-                {/* Site Info */}
-                <section className="bg-white/90 backdrop-blur-sm border-4 border-black rounded-3xl p-8 shadow-neo">
+
+                {/* 1. Global Site Info */}
+                <section className="bg-white/90 backdrop-blur-sm border-4 border-black rounded-3xl p-8 shadow-neo relative z-40">
                     <div className="flex items-center gap-4 mb-6 pb-6 border-b-2 border-black/5">
                         <div className="w-12 h-12 bg-primary/20 rounded-xl border-2 border-black flex items-center justify-center">
                             <User className="w-6 h-6 text-primary" />
@@ -233,8 +212,7 @@ export default function SettingsPage() {
                             <p className="text-sm font-bold text-black/40">基础站点配置</p>
                         </div>
                     </div>
-
-                    <div className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="font-bold text-sm uppercase text-black/50">博客名称</label>
                             <input
@@ -245,6 +223,15 @@ export default function SettingsPage() {
                             />
                         </div>
                         <div className="space-y-2">
+                            <label className="font-bold text-sm uppercase text-black/50">作者名称</label>
+                            <input
+                                type="text"
+                                value={settings.author}
+                                onChange={(e) => updateSetting('author', e.target.value)}
+                                className="w-full px-4 py-3 bg-gray-50 border-2 border-black/10 rounded-xl font-bold focus:border-black transition-colors outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
                             <label className="font-bold text-sm uppercase text-black/50">站点描述</label>
                             <textarea
                                 value={settings.siteDescription}
@@ -253,274 +240,438 @@ export default function SettingsPage() {
                                 className="w-full px-4 py-3 bg-gray-50 border-2 border-black/10 rounded-xl font-bold focus:border-black transition-colors outline-none resize-none"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <label className="font-bold text-sm uppercase text-black/50">作者名称</label>
-                            <input
-                                type="text"
-                                value={settings.author}
-                                onChange={(e) => updateSetting('author', e.target.value)}
-                                placeholder="Your Name"
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-black/10 rounded-xl font-bold focus:border-black transition-colors outline-none"
-                            />
-                        </div>
                     </div>
                 </section>
 
-                {/* Social Links */}
-                <section className="bg-white/90 backdrop-blur-sm border-4 border-black rounded-3xl p-8 shadow-neo">
-                    <div className="flex items-center gap-4 mb-6 pb-6 border-b-2 border-black/5">
-                        <div className="w-12 h-12 bg-secondary/20 rounded-xl border-2 border-black flex items-center justify-center">
-                            <Link2 className="w-6 h-6 text-secondary" />
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-black">社交链接</h2>
-                            <p className="text-sm font-bold text-black/40">展示在页脚的联系方式</p>
-                        </div>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="font-bold text-sm uppercase text-black/50 flex items-center gap-2">
-                                <Globe className="w-4 h-4" /> GitHub
-                            </label>
-                            <input
-                                type="url"
-                                value={settings.githubUrl}
-                                onChange={(e) => updateSetting('githubUrl', e.target.value)}
-                                placeholder="https://github.com/username"
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-black/10 rounded-xl font-medium focus:border-black transition-colors outline-none"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="font-bold text-sm uppercase text-black/50 flex items-center gap-2">
-                                <Globe className="w-4 h-4" /> Twitter/X
-                            </label>
-                            <input
-                                type="url"
-                                value={settings.twitterUrl}
-                                onChange={(e) => updateSetting('twitterUrl', e.target.value)}
-                                placeholder="https://twitter.com/username"
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-black/10 rounded-xl font-medium focus:border-black transition-colors outline-none"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="font-bold text-sm uppercase text-black/50 flex items-center gap-2">
-                                <Mail className="w-4 h-4" /> 邮箱地址
-                            </label>
-                            <input
-                                type="email"
-                                value={settings.emailAddress}
-                                onChange={(e) => updateSetting('emailAddress', e.target.value)}
-                                placeholder="your@email.com"
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-black/10 rounded-xl font-medium focus:border-black transition-colors outline-none"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="font-bold text-sm uppercase text-black/50 flex items-center gap-2">
-                                <Globe className="w-4 h-4" /> 微博
-                            </label>
-                            <input
-                                type="url"
-                                value={settings.weiboUrl}
-                                onChange={(e) => updateSetting('weiboUrl', e.target.value)}
-                                placeholder="https://weibo.com/u/username"
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-black/10 rounded-xl font-medium focus:border-black transition-colors outline-none"
-                            />
-                        </div>
-                    </div>
-                </section>
-
-                {/* Cursor Effects - NEW SECTION */}
-                <section className="bg-gradient-to-br from-purple-50 to-pink-50 backdrop-blur-sm border-4 border-black rounded-3xl p-8 shadow-neo">
-                    <div className="flex items-center gap-4 mb-6 pb-6 border-b-2 border-black/5">
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-xl border-2 border-black flex items-center justify-center">
-                            <Sparkles className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-black">鼠标特效</h2>
-                            <p className="text-sm font-bold text-black/40">选择你喜欢的光标跟随效果</p>
-                        </div>
-                    </div>
-
-                    {/* Mouse Follow Toggle */}
-                    <div
-                        onClick={() => updateSetting('mouseFollowEnabled', !settings.mouseFollowEnabled)}
-                        className="flex items-center justify-between p-4 bg-white/80 rounded-xl border-2 border-black/10 cursor-pointer hover:bg-white transition-colors mb-6"
-                    >
-                        <div>
-                            <h3 className="font-bold">启用鼠标特效</h3>
-                            <p className="text-xs font-bold text-black/40">关闭后将不显示任何光标跟随效果</p>
-                        </div>
-                        <div className={`w-12 h-6 rounded-full relative transition-colors ${settings.mouseFollowEnabled ? 'bg-black' : 'bg-gray-300'}`}>
-                            <motion.div
-                                className="absolute top-1 w-4 h-4 bg-white rounded-full"
-                                animate={{ left: settings.mouseFollowEnabled ? '28px' : '4px' }}
-                                transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Cursor Style Options */}
-                    <AnimatePresence>
-                        {settings.mouseFollowEnabled && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="grid grid-cols-2 lg:grid-cols-4 gap-3"
-                            >
-                                {cursorOptions.map((option) => (
-                                    <button
-                                        key={option.id}
-                                        onClick={() => updateSetting('cursorStyle', option.id)}
-                                        className={`relative p-4 border-2 rounded-xl text-left transition-all ${settings.cursorStyle === option.id
-                                            ? 'bg-black text-white border-black scale-[0.98] shadow-none'
-                                            : 'bg-white text-black border-black/10 hover:border-black hover:shadow-neo-sm'
-                                            }`}
-                                    >
-                                        <span className="text-3xl mb-2 block">{option.emoji}</span>
-                                        <span className="block text-sm font-bold">{option.name}</span>
-                                        <span className="text-xs opacity-60">{option.description}</span>
-                                    </button>
-                                ))}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </section>
-
-                {/* Appearance */}
-                <section className="bg-white/90 backdrop-blur-sm border-4 border-black rounded-3xl p-8 shadow-neo">
-                    <div className="flex items-center gap-4 mb-6 pb-6 border-b-2 border-black/5">
-                        <div className="w-12 h-12 bg-accent/20 rounded-xl border-2 border-black flex items-center justify-center">
-                            <Palette className="w-6 h-6 text-accent" />
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-black">外观设置</h2>
-                            <p className="text-sm font-bold text-black/40">字体和性能优化</p>
-                        </div>
-                    </div>
-
-                    <div className="space-y-6">
-                        {/* Font Selection - Unified */}
-                        <div className="space-y-3">
-                            <label className="font-bold text-sm uppercase text-black/50">整体字体风格</label>
-                            <div className="grid grid-cols-2 gap-3">
-                                <button
-                                    onClick={() => updateSetting('fontStyle', 'system')}
-                                    className={`relative p-4 border-2 rounded-xl text-left transition-all ${settings.fontStyle === 'system' ? 'bg-black text-white border-black' : 'bg-white text-black border-black/10 hover:border-black'}`}
-                                >
-                                    <span className="block text-lg font-bold mb-1">系统默认</span>
-                                    <span className="text-xs opacity-60">苹方/微软雅黑</span>
-                                </button>
-                                <button
-                                    onClick={() => updateSetting('fontStyle', 'comic')}
-                                    className={`relative p-4 border-2 rounded-xl text-left transition-all ${settings.fontStyle === 'comic' ? 'bg-black text-white border-black' : 'bg-white text-black border-black/10 hover:border-black'}`}
-                                >
-                                    <span className="block text-lg font-bold mb-1" style={{ fontFamily: 'var(--font-comic-neue)' }}>Comic Style</span>
-                                    <span className="text-xs opacity-60">英文卡通风</span>
-                                </button>
-                                <button
-                                    onClick={() => updateSetting('fontStyle', 'zcool')}
-                                    className={`relative p-4 border-2 rounded-xl text-left transition-all ${settings.fontStyle === 'zcool' ? 'bg-black text-white border-black' : 'bg-white text-black border-black/10 hover:border-black'}`}
-                                >
-                                    <span className="block text-lg font-bold mb-1" style={{ fontFamily: '"ZCOOL KuaiLe", cursive' }}>站酷快乐体</span>
-                                    <span className="text-xs opacity-60">可爱卡通风</span>
-                                </button>
-                                <button
-                                    onClick={() => updateSetting('fontStyle', 'mashan')}
-                                    className={`relative p-4 border-2 rounded-xl text-left transition-all ${settings.fontStyle === 'mashan' ? 'bg-black text-white border-black' : 'bg-white text-black border-black/10 hover:border-black'}`}
-                                >
-                                    <span className="block text-lg font-bold mb-1" style={{ fontFamily: '"Ma Shan Zheng", cursive' }}>马善政毛笔</span>
-                                    <span className="text-xs opacity-60">手写书法风</span>
-                                </button>
-                                <button
-                                    onClick={() => updateSetting('fontStyle', 'longcang')}
-                                    className={`relative p-4 border-2 rounded-xl text-left transition-all ${settings.fontStyle === 'longcang' ? 'bg-black text-white border-black' : 'bg-white text-black border-black/10 hover:border-black'}`}
-                                >
-                                    <span className="block text-lg font-bold mb-1" style={{ fontFamily: '"Long Cang", cursive' }}>龙藏草书</span>
-                                    <span className="text-xs opacity-60">潇洒草书风</span>
-                                </button>
+                {/* 2. Appearance & Features */}
+                <div className="grid lg:grid-cols-2 gap-6 relative z-30">
+                    <section className="bg-white/90 backdrop-blur-sm border-4 border-black rounded-3xl p-8 shadow-neo relative z-50">
+                        <div className="flex items-center gap-4 mb-6 pb-6 border-b-2 border-black/5">
+                            <div className="w-12 h-12 bg-accent/20 rounded-xl border-2 border-black flex items-center justify-center">
+                                <Palette className="w-6 h-6 text-accent" />
                             </div>
-                        </div>
-
-                        {/* High Performance Toggle */}
-                        <div
-                            onClick={() => updateSetting('highPerformanceMode', !settings.highPerformanceMode)}
-                            className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border-2 border-black/5 cursor-pointer hover:bg-gray-100 transition-colors"
-                        >
                             <div>
-                                <h3 className="font-bold">高性能模式</h3>
-                                <p className="text-xs font-bold text-black/40">减少模糊特效以提高流畅度</p>
-                            </div>
-                            <div className={`w-12 h-6 rounded-full relative transition-colors ${settings.highPerformanceMode ? 'bg-black' : 'bg-gray-300'}`}>
-                                <motion.div
-                                    className="absolute top-1 w-4 h-4 bg-white rounded-full"
-                                    animate={{ left: settings.highPerformanceMode ? '28px' : '4px' }}
-                                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                                />
+                                <h2 className="text-2xl font-black">外观设置</h2>
+                                <p className="text-sm font-bold text-black/40">字体和视觉风格</p>
                             </div>
                         </div>
-                    </div>
-                </section>
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="font-bold text-sm uppercase text-black/50">字体风格</label>
 
-                {/* Features */}
-                <section className="bg-white/90 backdrop-blur-sm border-4 border-black rounded-3xl p-8 shadow-neo">
+                                <NeoSelect
+                                    value={settings.fontStyle}
+                                    onChange={(val) => updateSetting('fontStyle', val)}
+                                    className="relative z-30"
+                                    options={[
+                                        { value: "system", label: "系统默认", description: "苹方/微软雅黑" },
+                                        { value: "comic", label: "Comic Style", description: "英文卡通风" },
+                                        { value: "zcool", label: "站酷快乐体", description: "可爱卡通风" },
+                                        { value: "mashan", label: "马善政毛笔", description: "手写书法风" },
+                                        { value: "longcang", label: "龙藏草书", description: "潇洒草书风" },
+                                    ]}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="font-bold text-sm uppercase text-black/50">鼠标特效</label>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => updateSetting('mouseFollowEnabled', !settings.mouseFollowEnabled)}
+                                        className={`px-4 py-2 border-2 rounded-lg font-bold ${settings.mouseFollowEnabled ? 'bg-black text-white border-black' : 'bg-gray-100 text-gray-500 border-transparent'}`}
+                                    >
+                                        {settings.mouseFollowEnabled ? '已开启' : '已关闭'}
+                                    </button>
+                                    {settings.mouseFollowEnabled && (
+                                        <div className="flex-1 min-w-[150px]">
+                                            <NeoSelect
+                                                value={settings.cursorStyle}
+                                                onChange={(val) => updateSetting('cursorStyle', val)}
+                                                options={cursorOptions.map(opt => ({
+                                                    value: opt.id,
+                                                    label: opt.name,
+                                                    emoji: opt.emoji,
+                                                    description: opt.description
+                                                }))}
+                                                placeholder="选择特效"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="bg-white/90 backdrop-blur-sm border-4 border-black rounded-3xl p-8 shadow-neo relative z-40">
+                        <div className="flex items-center gap-4 mb-6 pb-6 border-b-2 border-black/5">
+                            <div className="w-12 h-12 bg-blue-100 rounded-xl border-2 border-black flex items-center justify-center">
+                                <MessageSquare className="w-6 h-6 text-blue-600" />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-black">功能开关</h2>
+                                <p className="text-sm font-bold text-black/40">博客功能配置</p>
+                            </div>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border-2 border-black/5">
+                                <span className="font-bold">评论功能</span>
+                                <div
+                                    className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${settings.commentsEnabled ? 'bg-black' : 'bg-gray-300'}`}
+                                    onClick={() => updateSetting('commentsEnabled', !settings.commentsEnabled)}
+                                >
+                                    <motion.div className="absolute top-1 w-4 h-4 bg-white rounded-full" animate={{ left: settings.commentsEnabled ? '28px' : '4px' }} />
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border-2 border-black/5">
+                                <span className="font-bold">显示阅读时间</span>
+                                <div
+                                    className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${settings.showReadingTime ? 'bg-black' : 'bg-gray-300'}`}
+                                    onClick={() => updateSetting('showReadingTime', !settings.showReadingTime)}
+                                >
+                                    <motion.div className="absolute top-1 w-4 h-4 bg-white rounded-full" animate={{ left: settings.showReadingTime ? '28px' : '4px' }} />
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                {/* 3. About Page Configuration */}
+                <section className="bg-[#FACC15]/10 backdrop-blur-sm border-4 border-black rounded-3xl p-8 shadow-neo relative z-20">
                     <div className="flex items-center gap-4 mb-6 pb-6 border-b-2 border-black/5">
-                        <div className="w-12 h-12 bg-primary/20 rounded-xl border-2 border-black flex items-center justify-center">
-                            <MessageSquare className="w-6 h-6 text-primary" />
+                        <div className="w-12 h-12 bg-[#FACC15] rounded-xl border-2 border-black flex items-center justify-center">
+                            <LayoutTemplate className="w-6 h-6 text-black" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-black">功能开关</h2>
-                            <p className="text-sm font-bold text-black/40">启用或禁用博客功能</p>
+                            <h2 className="text-2xl font-black">关于页面配置</h2>
+                            <p className="text-sm font-bold text-black/40">自定义 Hero 文本、技能列表和个性卡片</p>
                         </div>
                     </div>
 
-                    <div className="space-y-4">
-                        <div
-                            onClick={() => updateSetting('commentsEnabled', !settings.commentsEnabled)}
-                            className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border-2 border-black/5 cursor-pointer hover:bg-gray-100 transition-colors"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <MessageSquare className="w-5 h-5 text-blue-600" />
+                    <div className="space-y-8">
+                        {/* Hero Text */}
+                        <div className="bg-white/50 border-2 border-black/10 rounded-2xl p-6">
+                            <h3 className="font-bold mb-4 flex items-center gap-2"><Sparkles className="w-4 h-4" /> Hero 区域文案</h3>
+                            <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-black/40 uppercase">主标题第一行 (Prefix)</label>
+                                    <input
+                                        type="text"
+                                        value={settings.aboutHeroTitle1}
+                                        onChange={(e) => updateSetting('aboutHeroTitle1', e.target.value)}
+                                        className="w-full px-3 py-2 border-2 border-black/10 rounded-lg font-bold"
+                                    />
                                 </div>
-                                <div>
-                                    <h3 className="font-bold">评论功能</h3>
-                                    <p className="text-xs font-bold text-black/40">允许读者在文章下方留言</p>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-black/40 uppercase">主标题高亮 (Gradient)</label>
+                                    <input
+                                        type="text"
+                                        value={settings.aboutHeroTitle2}
+                                        onChange={(e) => updateSetting('aboutHeroTitle2', e.target.value)}
+                                        className="w-full px-3 py-2 border-2 border-black/10 rounded-lg font-bold text-[#A855F7]"
+                                    />
                                 </div>
                             </div>
-                            <div className={`w-12 h-6 rounded-full relative transition-colors ${settings.commentsEnabled ? 'bg-black' : 'bg-gray-300'}`}>
-                                <motion.div
-                                    className="absolute top-1 w-4 h-4 bg-white rounded-full"
-                                    animate={{ left: settings.commentsEnabled ? '28px' : '4px' }}
-                                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-black/40 uppercase">个人简介描述</label>
+                                <textarea
+                                    value={settings.aboutHeroDescription}
+                                    onChange={(e) => updateSetting('aboutHeroDescription', e.target.value)}
+                                    rows={3}
+                                    className="w-full px-3 py-2 border-2 border-black/10 rounded-lg font-bold resize-none"
                                 />
                             </div>
                         </div>
 
-                        <div
-                            onClick={() => updateSetting('showReadingTime', !settings.showReadingTime)}
-                            className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border-2 border-black/5 cursor-pointer hover:bg-gray-100 transition-colors"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                                    <Clock className="w-5 h-5 text-orange-600" />
+                        {/* Skills Editor */}
+                        <ArrayEditor
+                            title="技能卡片 (Skills)"
+                            description="出现在横向滚动区域的技能卡片"
+                            items={settings.aboutSkills || []}
+                            onChange={(items) => updateSetting('aboutSkills', items)}
+                            itemTemplate={{ icon: "Code", title: "New Skill", desc: "Description here...", hoverColor: "hover:bg-[#FACC15]" }}
+                            renderItem={(item, index, update) => (
+                                <div className="flex flex-col md:flex-row gap-6 items-start">
+                                    {/* Icon Preview */}
+                                    <div className="shrink-0 space-y-2 text-center">
+                                        <div className="w-20 h-20 bg-black text-white rounded-2xl flex items-center justify-center shadow-neo-sm">
+                                            <IconSelector value={item.icon} onChange={() => { }} readonly />
+                                        </div>
+                                        <div className="text-xs font-bold opacity-40 uppercase">Preview</div>
+                                    </div>
+
+                                    {/* Inputs */}
+                                    <div className="flex-1 space-y-4 w-full">
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold opacity-40 uppercase">Title</label>
+                                            <input
+                                                value={item.title}
+                                                onChange={(e) => update('title', e.target.value)}
+                                                className="w-full font-black text-lg bg-transparent border-b-2 border-black/10 focus:border-black outline-none transition-colors py-1"
+                                                placeholder="技能名称"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold opacity-40 uppercase">Description</label>
+                                            <textarea
+                                                value={item.desc}
+                                                onChange={(e) => update('desc', e.target.value)}
+                                                className="w-full text-sm font-bold bg-gray-50 border-2 border-transparent focus:border-black/10 focus:bg-white rounded-xl p-3 outline-none resize-none transition-all"
+                                                rows={2}
+                                                placeholder="技能描述..."
+                                            />
+                                        </div>
+
+                                        <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
+                                            {/* Icon Selector */}
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold opacity-40 uppercase flex items-center gap-2">
+                                                    Icon
+                                                    <span className="bg-black text-white text-[10px] px-1.5 py-0.5 rounded-full">{item.icon}</span>
+                                                </label>
+                                                <div className="p-3 bg-gray-50 rounded-xl border-2 border-black/5">
+                                                    <IconSelector value={item.icon} onChange={(val) => update('icon', val)} />
+                                                </div>
+                                            </div>
+
+                                            {/* Hover Color Selector */}
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold opacity-40 uppercase hover:text-black transition-colors">Hover Color</label>
+                                                <NeoSelect
+                                                    value={item.hoverColor || "hover:bg-[#FACC15]"}
+                                                    onChange={(val) => update('hoverColor', val)}
+                                                    className="!text-xs"
+                                                    placeholder="Select Color"
+                                                    options={[
+                                                        { value: "hover:bg-[#FACC15]", label: "Yellow", emoji: "🟡" },
+                                                        { value: "hover:bg-[#A855F7]", label: "Purple", emoji: "🟣" },
+                                                        { value: "hover:bg-[#4ADE80]", label: "Green", emoji: "🟢" },
+                                                        { value: "hover:bg-blue-500", label: "Blue", emoji: "🔵" },
+                                                        { value: "hover:bg-red-500", label: "Red", emoji: "🔴" },
+                                                    ]}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="font-bold">显示阅读时间</h3>
-                                    <p className="text-xs font-bold text-black/40">在文章页面显示预计阅读时间</p>
+                            )}
+                        />
+
+                        {/* Vibe Cards Editor */}
+                        <ArrayEditor
+                            title="个性卡片 (Vibe Cards)"
+                            description="堆叠卡片区域的内容"
+                            items={settings.aboutVibeCards || []}
+                            onChange={(items) => updateSetting('aboutVibeCards', items)}
+                            itemTemplate={{ icon: "Music", title: "Hobbies", desc: "...", color: "bg-white", textColor: "text-black", iconColor: "text-black", rot: 0 }}
+                            renderItem={(item, index, update) => (
+                                <div className="flex flex-col md:flex-row gap-6">
+                                    {/* Left Column: Style Controls */}
+                                    <div className="w-full md:w-48 space-y-3 p-4 bg-gray-50 rounded-xl border-2 border-black/5 h-fit">
+                                        <h4 className="font-bold text-xs uppercase opacity-40 mb-2">Card Style</h4>
+                                        <div>
+                                            <label className="text-xs font-bold opacity-50 block mb-1">Color (Tailwind)</label>
+                                            <NeoSelect
+                                                value={item.color}
+                                                onChange={(val) => update('color', val)}
+                                                className="!text-xs"
+                                                placeholder="Select Color"
+                                                options={[
+                                                    { value: "bg-white", label: "White", emoji: "⚪" },
+                                                    { value: "bg-black", label: "Black", emoji: "⚫" },
+                                                    { value: "bg-[#FACC15]", label: "Yellow", emoji: "🟡" },
+                                                    { value: "bg-[#A855F7]", label: "Purple", emoji: "🟣" },
+                                                    { value: "bg-[#4ADE80]", label: "Green", emoji: "🟢" },
+                                                    { value: "bg-blue-500", label: "Blue", emoji: "🔵" },
+                                                    { value: "bg-red-500", label: "Red", emoji: "🔴" },
+                                                    { value: "bg-pink-500", label: "Pink", emoji: "💗" },
+                                                    { value: "bg-orange-500", label: "Orange", emoji: "🟠" },
+                                                    { value: "bg-teal-400", label: "Teal", emoji: "💠" },
+                                                ]}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold opacity-50 block mb-1">Text Color</label>
+                                            <NeoSelect
+                                                value={item.textColor || "text-black"}
+                                                onChange={(val) => update('textColor', val)}
+                                                className="!text-xs"
+                                                placeholder="Select Text Color"
+                                                options={[
+                                                    { value: "text-black", label: "Black", emoji: "⚫" },
+                                                    { value: "text-white", label: "White", emoji: "⚪" },
+                                                    { value: "text-[#FACC15]", label: "Yellow", emoji: "🟡" },
+                                                    { value: "text-[#A855F7]", label: "Purple", emoji: "🟣" },
+                                                    { value: "text-[#4ADE80]", label: "Green", emoji: "🟢" },
+                                                ]}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold opacity-50 block mb-1">Icon Color</label>
+                                            <NeoSelect
+                                                value={item.iconColor || "text-black"}
+                                                onChange={(val) => update('iconColor', val)}
+                                                className="!text-xs"
+                                                placeholder="Select Icon Color"
+                                                options={[
+                                                    { value: "text-black", label: "Black", emoji: "⚫" },
+                                                    { value: "text-white", label: "White", emoji: "⚪" },
+                                                    { value: "text-[#FACC15]", label: "Yellow", emoji: "🟡" },
+                                                    { value: "text-[#A855F7]", label: "Purple", emoji: "🟣" },
+                                                    { value: "text-[#4ADE80]", label: "Green", emoji: "🟢" },
+                                                    { value: "text-blue-500", label: "Blue", emoji: "🔵" },
+                                                    { value: "text-red-500", label: "Red", emoji: "🔴" },
+                                                ]}
+                                            />
+
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold opacity-50 block mb-1">Rotation (°)</label>
+                                            <input
+                                                type="number"
+                                                value={item.rot}
+                                                onChange={(e) => update('rot', Number(e.target.value))}
+                                                className="w-full px-3 py-2 bg-white border-2 border-black/10 rounded-lg font-mono text-xs focus:border-black outline-none"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Right Column: Content */}
+                                    <div className="flex-1 space-y-4">
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold opacity-40 uppercase">Title</label>
+                                            <input
+                                                value={item.title}
+                                                onChange={(e) => update('title', e.target.value)}
+                                                className="w-full font-black text-lg bg-transparent border-b-2 border-black/10 focus:border-black outline-none py-1"
+                                                placeholder="卡片标题"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold opacity-40 uppercase">Description</label>
+                                            <textarea
+                                                value={item.desc}
+                                                onChange={(e) => update('desc', e.target.value)}
+                                                className="w-full text-sm font-bold bg-white border-2 border-black/10 focus:border-black rounded-xl p-3 outline-none resize-none"
+                                                rows={2}
+                                                placeholder="卡片描述"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold opacity-40 uppercase">Icon</label>
+                                            <div className="p-3 bg-gray-50 rounded-xl border-2 border-black/5">
+                                                <IconSelector value={item.icon} onChange={(val) => update('icon', val)} />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+                            )}
+                        />
+                    </div>
+                </section>
+
+                {/* Social Links (Reduced priority) */}
+                <section className="bg-white/90 backdrop-blur-sm border-4 border-black rounded-3xl p-8 shadow-neo relative z-10">
+                    <div className="flex items-center gap-4 mb-6 pb-6 border-b-2 border-black/5">
+                        <h2 className="text-xl font-black opacity-50">社交链接</h2>
+                    </div>
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center shrink-0">
+                                <Github className="w-5 h-5" />
                             </div>
-                            <div className={`w-12 h-6 rounded-full relative transition-colors ${settings.showReadingTime ? 'bg-black' : 'bg-gray-300'}`}>
-                                <motion.div
-                                    className="absolute top-1 w-4 h-4 bg-white rounded-full"
-                                    animate={{ left: settings.showReadingTime ? '28px' : '4px' }}
-                                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                            <div className="flex-1 space-y-1">
+                                <label className="text-xs font-bold opacity-40 uppercase">Github URL</label>
+                                <input
+                                    value={settings.githubUrl}
+                                    onChange={(e) => updateSetting('githubUrl', e.target.value)}
+                                    placeholder="https://github.com/..."
+                                    className="w-full bg-gray-50 border-2 border-black/5 focus:border-black px-4 py-2 rounded-lg font-bold text-sm outline-none transition-colors"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center shrink-0">
+                                <Twitter className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1 space-y-1">
+                                <label className="text-xs font-bold opacity-40 uppercase">Twitter / X URL</label>
+                                <input
+                                    value={settings.twitterUrl}
+                                    onChange={(e) => updateSetting('twitterUrl', e.target.value)}
+                                    placeholder="https://twitter.com/..."
+                                    className="w-full bg-gray-50 border-2 border-black/5 focus:border-black px-4 py-2 rounded-lg font-bold text-sm outline-none transition-colors"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center shrink-0">
+                                <Mail className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1 space-y-1">
+                                <label className="text-xs font-bold opacity-40 uppercase">Email Address</label>
+                                <input
+                                    value={settings.emailAddress}
+                                    onChange={(e) => updateSetting('emailAddress', e.target.value)}
+                                    placeholder="example@mail.com"
+                                    className="w-full bg-gray-50 border-2 border-black/5 focus:border-black px-4 py-2 rounded-lg font-bold text-sm outline-none transition-colors"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center shrink-0">
+                                <FileText className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1 space-y-1">
+                                <label className="text-xs font-bold opacity-40 uppercase">Resume URL</label>
+                                <input
+                                    value={settings.resumeUrl}
+                                    onChange={(e) => updateSetting('resumeUrl', e.target.value)}
+                                    placeholder="https://.../resume.pdf"
+                                    className="w-full bg-gray-50 border-2 border-black/5 focus:border-black px-4 py-2 rounded-lg font-bold text-sm outline-none transition-colors"
                                 />
                             </div>
                         </div>
                     </div>
                 </section>
+
+            </div>
+
+            {/* Floating Action Bar */}
+            <div className="fixed bottom-36 md:bottom-8 w-[90%] md:w-auto left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-8 z-50 flex items-center justify-between md:justify-start gap-3 p-2 pl-4 bg-black/90 backdrop-blur-xl text-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.3)] border border-white/10 transition-all duration-300">
+                <div className="flex flex-col mr-4">
+                    <span className="text-sm font-bold">
+                        {isDirty ? "未保存更改" : "系统就绪"}
+                    </span>
+                    <span className="text-xs text-white/50">
+                        {isDirty ? "请保存您的修改" : "所有设置已是最新"}
+                    </span>
+                </div>
+
+                <div className="h-8 w-[1px] bg-white/20 mx-1" />
+
+                <button
+                    onClick={handleReset}
+                    className="px-4 py-2 rounded-xl text-sm font-bold hover:bg-white/10 text-white/70 hover:text-white transition-colors flex items-center gap-2"
+                >
+                    <RotateCcw className="w-4 h-4" />
+                    重置
+                </button>
+
+                <button
+                    onClick={handleSave}
+                    disabled={!isDirty || isSaving}
+                    className={`px-6 py-2 rounded-xl font-bold text-sm shadow-lg transform transition-all flex items-center gap-2
+                        ${isDirty
+                            ? "bg-[#FACC15] hover:bg-[#FACC15]/90 text-black hover:-translate-y-0.5"
+                            : "bg-white/10 text-white/30 cursor-not-allowed"
+                        }`}
+                >
+                    {isSaving ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                        <Save className="w-4 h-4" />
+                    )}
+                    Save Changes
+                </button>
             </div>
         </div>
     );

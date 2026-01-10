@@ -1,17 +1,18 @@
 "use client";
 
+import { cn } from "@/lib/utils/cn";
+import { motion } from "framer-motion";
+import { CheckCircle2, FileText, Image, LayoutDashboard, LogOut, Settings, Users } from "lucide-react";
+import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
-import { LayoutDashboard, FileText, Image, Settings, LogOut, CheckCircle2 } from "lucide-react";
-import { signOut } from "next-auth/react";
-import { cn } from "@/lib/utils/cn";
 
 const navItems = [
     { name: "仪表盘", href: "/admin", icon: LayoutDashboard },
     { name: "文章", href: "/admin/posts", icon: FileText },
     { name: "分类", href: "/admin/categories", icon: CheckCircle2 },
     { name: "媒体", href: "/admin/media", icon: Image },
+    { name: "友链", href: "/admin/friends", icon: Users },
     { name: "设置", href: "/admin/settings", icon: Settings },
 ];
 

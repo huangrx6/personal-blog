@@ -1,8 +1,9 @@
-import { prisma } from "@/lib/db/prisma"
-import { FloatingShapes } from "@/components/ui/floating-shapes"
-import { Plus } from "lucide-react"
-import { CategoryList } from "@/components/admin/category-list"
-import { CategoryForm } from "@/components/admin/category-form"
+import { CategoryForm } from "@/components/admin/category-form";
+import { CategoryList } from "@/components/admin/category-list";
+import { prisma } from "@/lib/db/prisma";
+import { Plus } from "lucide-react";
+
+export const dynamic = 'force-dynamic';
 
 export default async function CategoriesPage() {
     const categories = await prisma.category.findMany({
@@ -15,13 +16,14 @@ export default async function CategoriesPage() {
     })
 
     return (
-        <div className="space-y-8 relative min-h-[80vh]">
-            <FloatingShapes />
+        <div className="space-y-6 relative min-h-[80vh]">
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4 bg-white/80 backdrop-blur-sm border-4 border-black rounded-2xl p-6 shadow-neo">
                 <div>
-                    <h1 className="text-4xl lg:text-5xl font-black font-cartoon tracking-wide mb-2">分类管理</h1>
-                    <p className="text-black/60 font-medium">管理文章分类，让内容井井有条。共 {categories.length} 个分类</p>
+                    <h1 className="text-3xl font-black tracking-tight">分类管理</h1>
+                    <p className="text-black/50 font-medium">
+                        共 {categories.length} 个分类
+                    </p>
                 </div>
 
                 <CategoryForm mode="create" />

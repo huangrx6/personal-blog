@@ -31,6 +31,9 @@ export async function createPost(prevState: PostState, formData: FormData) {
     const title = formData.get("title") as string
     const slug = formData.get("slug") as string
     const content = formData.get("content") as string
+    // Handle categoryId: convert empty string to null
+    const rawCategoryId = formData.get("categoryId") as string
+    const categoryId = rawCategoryId && rawCategoryId !== "" ? rawCategoryId : null
     const published = formData.get("published") === "on"
 
     // Basic validation
@@ -45,19 +48,35 @@ export async function createPost(prevState: PostState, formData: FormData) {
         }
     }
 
+    // Check if slug exists
+    const existingPost = await prisma.post.findUnique({
+        where: { slug }
+    })
+
+    if (existingPost) {
+        return {
+            message: "Slug validation failed",
+            errors: {
+                slug: ["This slug is already used by another post (Published or Draft)."]
+            }
+        }
+    }
+
     try {
         await prisma.post.create({
             data: {
                 title,
                 slug,
                 content,
-                published,
-                authorId: user.id
+                status: published ? "PUBLISHED" : "DRAFT",
+                authorId: user.id,
+                categoryId // Pass undefined/null if empty
             }
         })
-    } catch (e) {
-        console.error(e)
-        return { message: "Database Error: Failed to create post (Slug might be duplicate)" }
+    } catch (e: any) {
+        console.error("Create Post Error Details:", e)
+        // Return actual error message for debugging
+        return { message: `Database Error: ${e.message || "Unknown error"}` }
     }
 
     revalidatePath("/admin/posts")
@@ -120,9 +139,11 @@ export async function togglePublish(id: string) {
             return { success: false, message: "Post not found" }
         }
 
+        const newStatus = post.status === "PUBLISHED" ? "DRAFT" : "PUBLISHED"
+
         await prisma.post.update({
             where: { id },
-            data: { published: !post.published }
+            data: { status: newStatus }
         })
 
         revalidatePath("/admin/posts")
@@ -132,8 +153,8 @@ export async function togglePublish(id: string) {
 
         return {
             success: true,
-            published: !post.published,
-            message: !post.published ? "文章已发布" : "文章已转为草稿"
+            published: newStatus === "PUBLISHED",
+            message: newStatus === "PUBLISHED" ? "文章已发布" : "文章已转为草稿"
         }
     } catch (e) {
         console.error("Toggle publish failed", e)

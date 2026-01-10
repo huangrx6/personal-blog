@@ -3,11 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import Link from "next/link";
 import { motion } from "framer-motion";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 // Floating shapes for visual interest
 const FloatingShape = ({ className, delay = 0 }: { className: string; delay?: number }) => (
@@ -104,7 +104,7 @@ export default function LoginPage() {
                 }}
             >
                 <img
-                    src="/login-character.png"
+                    src="/parallax/mascot.png"
                     alt="Creative Character"
                     className="w-full h-full object-contain"
                     style={{

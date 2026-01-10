@@ -1,7 +1,9 @@
-import { prisma } from "@/lib/db/prisma"
-import Link from "next/link"
-import { FileText, CheckCircle2, FileEdit, Plus, Sparkles, ArrowRight, Clock, TrendingUp, Archive } from "lucide-react"
-import { FloatingShapes } from "@/components/ui/floating-shapes"
+import { FloatingShapes } from "@/components/ui/floating-shapes";
+import { prisma } from "@/lib/db/prisma";
+import { ArrowRight, CheckCircle2, Clock, FileEdit, FileText, Plus, Sparkles, TrendingUp } from "lucide-react";
+import Link from "next/link";
+
+export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
     const postCount = await prisma.post.count()

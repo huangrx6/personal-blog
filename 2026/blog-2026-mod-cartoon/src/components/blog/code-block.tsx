@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Copy, Check } from "lucide-react";
-import { Confetti } from "@/components/ui/confetti";
+import { Check, Copy } from "lucide-react";
+import { useState } from "react";
 
 interface CodeBlockProps {
     children: string;
@@ -11,9 +10,6 @@ interface CodeBlockProps {
 
 export function CodeBlock({ children, language }: CodeBlockProps) {
     const [copied, setCopied] = useState(false);
-    const [showConfetti, setShowConfetti] = useState(false);
-    const [confettiOrigin, setConfettiOrigin] = useState<{ x: number, y: number } | undefined>(undefined);
-    const buttonRef = useRef<HTMLButtonElement>(null);
 
     const code = typeof children === 'string' ? children : String(children);
     const lines = code.split('\n');
@@ -25,18 +21,7 @@ export function CodeBlock({ children, language }: CodeBlockProps) {
 
     const handleCopy = async (e: React.MouseEvent) => {
         await navigator.clipboard.writeText(code);
-
-        // Calculate button center for confetti origin
-        if (buttonRef.current) {
-            const rect = buttonRef.current.getBoundingClientRect();
-            setConfettiOrigin({
-                x: rect.left + rect.width / 2,
-                y: rect.top
-            });
-        }
-
         setCopied(true);
-        setShowConfetti(true);
         setTimeout(() => setCopied(false), 2000);
     };
 
@@ -58,31 +43,28 @@ export function CodeBlock({ children, language }: CodeBlockProps) {
                         </span>
                     </div>
 
-                    {/* Copy button with confetti */}
-                    <div className="relative">
-                        <button
-                            ref={buttonRef}
-                            onClick={handleCopy}
-                            className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-all duration-200
-                                ${copied
-                                    ? 'bg-secondary text-white scale-105'
-                                    : 'bg-black text-white hover:bg-primary'
-                                }
-                            `}
-                        >
-                            {copied ? (
-                                <>
-                                    <Check className="w-3.5 h-3.5" />
-                                    <span>已复制!</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Copy className="w-3.5 h-3.5" />
-                                    <span>复制</span>
-                                </>
-                            )}
-                        </button>
-                    </div>
+                    {/* Copy button - Simplified */}
+                    <button
+                        onClick={handleCopy}
+                        className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-all duration-200 border-2 border-black active:translate-y-0.5
+                            ${copied
+                                ? 'bg-[#A855F7] text-white shadow-none'
+                                : 'bg-white text-black hover:bg-black hover:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                            }
+                        `}
+                    >
+                        {copied ? (
+                            <>
+                                <Check className="w-3.5 h-3.5" />
+                                <span>Copied!</span>
+                            </>
+                        ) : (
+                            <>
+                                <Copy className="w-3.5 h-3.5" />
+                                <span>Copy</span>
+                            </>
+                        )}
+                    </button>
                 </div>
 
                 {/* Code content */}
@@ -105,13 +87,6 @@ export function CodeBlock({ children, language }: CodeBlockProps) {
                     </table>
                 </div>
             </div>
-
-            {/* Global Confetti Portal - rendered outside of overflow hidden container */}
-            <Confetti
-                trigger={showConfetti}
-                onComplete={() => setShowConfetti(false)}
-                origin={confettiOrigin}
-            />
         </div>
     );
 }

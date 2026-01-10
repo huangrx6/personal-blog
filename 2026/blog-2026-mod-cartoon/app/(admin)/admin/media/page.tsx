@@ -1,19 +1,21 @@
-import { FloatingShapes } from "@/components/ui/floating-shapes"
-import { Image as ImageIcon, Upload, Trash2, Maximize2 } from "lucide-react"
+import { Image as ImageIcon, Maximize2, Trash2, Upload } from "lucide-react";
+
+export const dynamic = 'force-dynamic';
 
 export default function MediaPage() {
     return (
-        <div className="space-y-8 relative min-h-[80vh]">
-            <FloatingShapes />
+        <div className="space-y-6 relative min-h-[80vh]">
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4 bg-white/80 backdrop-blur-sm border-4 border-black rounded-2xl p-6 shadow-neo">
                 <div>
-                    <h1 className="text-4xl lg:text-5xl font-black font-cartoon tracking-wide mb-2">媒体库</h1>
-                    <p className="text-black/60 font-medium">管理博客图片和文件资源。</p>
+                    <h1 className="text-3xl font-black tracking-tight">媒体库</h1>
+                    <p className="text-black/50 font-medium">
+                        管理博客图片和文件资源
+                    </p>
                 </div>
 
-                <button className="group flex items-center gap-2 bg-black text-white px-5 py-3 rounded-xl font-bold shadow-neo hover:bg-primary hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all">
-                    <Upload className="w-5 h-5" />
+                <button className="group flex items-center gap-2 bg-black text-white px-5 py-3 rounded-xl border-2 border-black font-bold shadow-neo hover:bg-primary hover:text-white hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+                    <Upload className="w-4 h-4" />
                     <span>上传图片</span>
                 </button>
             </div>

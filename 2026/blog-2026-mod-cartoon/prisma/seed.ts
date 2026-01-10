@@ -5,7 +5,7 @@ const prisma = new PrismaClient()
 async function main() {
     const email = process.env.ADMIN_EMAIL || 'admin@example.com'
 
-    // Note: identifying user by email to avoid duplicates
+    // Create or update admin user
     const user = await prisma.user.upsert({
         where: { email: email },
         update: {},
@@ -16,7 +16,7 @@ async function main() {
         },
     })
 
-    console.log({ user })
+    console.log('Created user:', user)
 }
 
 main()

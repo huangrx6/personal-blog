@@ -1,8 +1,10 @@
 import { deletePost } from "@/actions/posts"
-import { prisma } from "@/lib/db/prisma"
-import { Edit, Trash2, Plus, FileText, Clock, Eye, EyeOff, Archive, ExternalLink } from "lucide-react"
-import Link from "next/link"
 import { PostStatusToggle } from "@/components/admin/post-status-toggle"
+import { prisma } from "@/lib/db/prisma"
+import { Archive, Clock, Edit, ExternalLink, Eye, EyeOff, FileText, Plus, Trash2 } from "lucide-react"
+import Link from "next/link"
+
+export const dynamic = 'force-dynamic';
 
 export default async function AdminPostsPage() {
     const posts = await prisma.post.findMany({
@@ -81,56 +83,56 @@ export default async function AdminPostsPage() {
                         return (
                             <div
                                 key={post.id}
-                                className="group bg-white/80 backdrop-blur-sm border-4 border-black rounded-2xl overflow-hidden shadow-neo hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
+                                className="group bg-white/80 backdrop-blur-sm border-4 border-black rounded-2xl overflow-hidden shadow-neo hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all p-6 flex flex-col justify-between h-full"
                             >
-                                {/* Card Header with Status */}
-                                <div className={`px-5 py-3 border-b-4 border-black ${getStatusColor(post.status).split(' ')[0]}`}>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <StatusIcon className={`w-4 h-4 ${getStatusColor(post.status).split(' ')[1]}`} />
-                                            <span className={`text-sm font-bold ${getStatusColor(post.status).split(' ')[1]}`}>
-                                                {getStatusLabel(post.status)}
-                                            </span>
+                                <div>
+                                    {/* Top Row: Title & Status */}
+                                    <div className="flex items-start justify-between mb-4 gap-4">
+                                        <h3 className="font-black text-xl leading-tight line-clamp-2">
+                                            {post.title || "无标题"}
+                                        </h3>
+                                        <div className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-bold border-2 border-black flex items-center gap-1 ${getStatusColor(post.status).split(' ')[0]}`}>
+                                            <StatusIcon className="w-3 h-3" />
+                                            <span>{getStatusLabel(post.status)}</span>
                                         </div>
-                                        <div className="flex items-center gap-1 text-xs text-black/50">
+                                    </div>
+
+                                    {/* Meta Info */}
+                                    <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-black/60 mb-6">
+                                        {post.category && (
+                                            <div
+                                                className="px-2 py-0.5 rounded-md border-2 border-black/10"
+                                                style={{ backgroundColor: `${post.category.color}20`, color: post.category.color }}
+                                            >
+                                                {post.category.name}
+                                            </div>
+                                        )}
+                                        <div className="flex items-center gap-1">
                                             <Clock className="w-3 h-3" />
                                             <span>{new Date(post.createdAt).toLocaleDateString('zh-CN')}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1 max-w-[120px] truncate" title={post.slug || ""}>
+                                            <FileText className="w-3 h-3" />
+                                            <span className="truncate">/{post.slug || "no-slug"}</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Card Content */}
-                                <div className="p-5">
-                                    <h3 className="font-black text-lg mb-2 line-clamp-2 min-h-[3.5rem]">
-                                        {post.title || "无标题"}
-                                    </h3>
+                                {/* Bottom Row: Actions */}
+                                <div className="space-y-3 mt-auto">
+                                    <PostStatusToggle postId={post.id} currentStatus={post.status} />
 
-                                    {/* Category Badge */}
-                                    {post.category && (
-                                        <div
-                                            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold mb-2"
-                                            style={{ backgroundColor: `${post.category.color}20`, color: post.category.color }}
-                                        >
-                                            {post.category.name}
-                                        </div>
-                                    )}
-
-                                    <p className="text-sm text-black/50 font-mono truncate mb-4">
-                                        /{post.slug || "no-slug"}
-                                    </p>
-
-                                    {/* Actions */}
-                                    <div className="flex items-center gap-2 flex-wrap">
+                                    <div className="flex items-center gap-2">
                                         <Link
                                             href={`/admin/posts/${post.id}/preview`}
-                                            className="flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 rounded-lg border-2 border-black font-bold text-xs hover:bg-gray-200 transition-colors"
+                                            className="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-lg border-2 border-black font-bold text-xs hover:bg-gray-200 transition-colors"
+                                            title="预览"
                                         >
-                                            <ExternalLink className="w-3.5 h-3.5" />
-                                            预览
+                                            <ExternalLink className="w-4 h-4" />
                                         </Link>
                                         <Link
                                             href={`/admin/posts/${post.id}`}
-                                            className="flex-1 flex items-center justify-center gap-2 py-2 bg-primary/10 rounded-lg border-2 border-black font-bold text-sm hover:bg-primary hover:text-white transition-colors"
+                                            className="flex-1 flex items-center justify-center gap-2 h-10 bg-primary/10 rounded-lg border-2 border-black font-bold text-sm hover:bg-primary hover:text-white transition-colors"
                                         >
                                             <Edit className="w-4 h-4" />
                                             编辑
@@ -144,9 +146,6 @@ export default async function AdminPostsPage() {
                                             </button>
                                         </form>
                                     </div>
-
-                                    {/* Status Toggle */}
-                                    <PostStatusToggle postId={post.id} currentStatus={post.status} />
                                 </div>
                             </div>
                         );
