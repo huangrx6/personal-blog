@@ -79,6 +79,7 @@ model Post {
   slug      String     @unique
   content   String     @db.LongText
   status    PostStatus @default(DRAFT)
+  coverImage String?   // URL to cover image
   
   authorId  String
   author    User       @relation(fields: [authorId], references: [id])
@@ -152,3 +153,21 @@ model FriendLink {
   updatedAt   DateTime @updatedAt
 }
 
+
+// Media / File Assets
+model Media {
+  id        String   @id @default(cuid())
+  filename  String
+  url       String
+  type      String   // mime type e.g. "image/jpeg"
+  size      Int      // in bytes
+  category  String   @default("general") // "general", "cover", "avatar", etc.
+  
+  // Optional metadata
+  width     Int?
+  height    Int?
+  alt       String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

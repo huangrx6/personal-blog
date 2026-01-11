@@ -1,8 +1,9 @@
 "use client";
 
-import { ReactNode } from "react";
-import { AdminDock } from "./admin-dock";
 import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
+import { ReactNode } from "react";
+import { AdminActionProvider } from "./admin-action-context";
+import { AdminDock } from "./admin-dock";
 
 interface AdminClientWrapperProps {
     children: ReactNode;
@@ -10,9 +11,11 @@ interface AdminClientWrapperProps {
 
 export function AdminClientWrapper({ children }: AdminClientWrapperProps) {
     return (
-        <ConfirmDialogProvider>
-            {children}
-            <AdminDock />
-        </ConfirmDialogProvider>
+        <AdminActionProvider>
+            <ConfirmDialogProvider>
+                {children}
+                <AdminDock />
+            </ConfirmDialogProvider>
+        </AdminActionProvider>
     );
 }

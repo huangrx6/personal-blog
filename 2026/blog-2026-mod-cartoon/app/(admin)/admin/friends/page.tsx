@@ -1,7 +1,8 @@
 import { getFriendLinks } from "@/actions/friend-links";
+import { FriendsHeroDoodle } from "@/components/admin/friends-hero-doodle";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ExternalLink, Pencil, Plus } from "lucide-react";
+import { ExternalLink, Pencil, Plus, Users } from "lucide-react";
 import Link from "next/link";
 import { DeleteFriendButton } from "./delete-button";
 
@@ -13,18 +14,54 @@ export default async function AdminFriendsPage() {
 
     return (
         <div className="space-y-8">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white/80 backdrop-blur-sm border-4 border-black rounded-2xl p-6 shadow-neo">
-                <div>
-                    <h1 className="text-3xl font-black tracking-tight">Friend Links</h1>
-                    <p className="text-black/50 font-medium">Manage your blogroll and friendships.</p>
+            {/* Hero Section */}
+            <div className="relative w-full bg-white border-4 border-black rounded-3xl overflow-hidden shadow-neo mb-10 min-h-[300px] md:min-h-[340px] flex flex-col md:flex-row group">
+                {/* Background Pattern */}
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                    style={{ backgroundImage: "radial-gradient(#000 2px, transparent 2px)", backgroundSize: "24px 24px" }}
+                />
+
+                {/* Left: Text Content */}
+                <div className="relative z-20 flex-1 p-10 md:p-16 flex flex-col justify-center items-start">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-black text-white text-xs font-bold rounded-full mb-4">
+                        <Users className="w-3 h-3" />
+                        <span>NETWORK MANAGER</span>
+                    </div>
+
+                    <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tighter leading-[0.9] mb-4 drop-shadow-sm">
+                        Friend
+                        <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#FACC15] to-[#F97316] [-webkit-text-stroke:2px_black]">
+                            Connections
+                        </span>
+                    </h1>
+
+                    <p className="font-bold text-black/60 md:text-lg max-w-md mb-6">
+                        管理您的友情链接与社交网络，构建独特的博客朋友圈。
+                    </p>
+
+                    <div className="flex items-center gap-4">
+                        <Link
+                            href="/admin/friends/new"
+                            className="flex items-center gap-2 bg-[#FACC15] text-black px-6 py-3 rounded-xl border-2 border-black shadow-neo font-black hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+                        >
+                            <Plus className="w-5 h-5" />
+                            <span>ADD FRIEND</span>
+                        </Link>
+
+                        <div className="hidden md:flex items-center gap-2 text-xs font-bold opacity-50">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                            {links?.length || 0} LINKS ACTIVE
+                        </div>
+                    </div>
                 </div>
-                <Link
-                    href="/admin/friends/new"
-                    className="flex items-center gap-2 bg-primary text-white px-5 py-3 rounded-xl border-2 border-black shadow-neo font-bold hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
-                >
-                    <Plus className="w-4 h-4" /> Add Friend
-                </Link>
+
+                {/* Right: Visuals (Doodle) */}
+                <div className="absolute inset-0 md:static md:w-1/2 overflow-visible md:overflow-hidden pointer-events-none">
+                    <div className="absolute inset-0 bg-gradient-to-b from-white via-white/80 to-transparent md:hidden z-10" />
+                    <div className="absolute right-[-10%] md:right-0 top-0 bottom-0 w-full md:w-full flex items-center justify-center md:justify-end md:pr-[10%] transform scale-90 md:scale-100 origin-center">
+                        <FriendsHeroDoodle />
+                    </div>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -56,7 +93,7 @@ export default async function AdminFriendsPage() {
 
                         <div className="flex items-center gap-2">
                             <Link href={`/admin/friends/${link.id}/edit`} className="flex-1">
-                                <Button variant="outline" className="w-full border-2 border-black font-bold hover:bg-yellow-100">
+                                <Button variant="outline" className="w-full border-2 border-black font-bold hover:bg-yellow-100 cursor-pointer">
                                     <Pencil className="mr-2 h-4 w-4" /> Edit
                                 </Button>
                             </Link>

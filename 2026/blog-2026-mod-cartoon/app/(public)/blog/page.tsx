@@ -47,7 +47,7 @@ export default async function BlogIndexPage() {
             {/* Client Component: Search + Filter + Grid */}
             <BlogClient
                 initialPosts={initialData.posts}
-                initialHasMore={initialData.hasMore}
+                initialTotal={initialData.total}
                 categories={categories}
             />
         </div>

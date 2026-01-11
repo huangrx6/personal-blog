@@ -22,7 +22,7 @@ export function DeleteFriendButton({ id, name }: { id: string, name: string }) {
         <Button
             variant="destructive"
             size="icon"
-            className="border-2 border-black shadow-neo-sm hover:translate-y-0.5 hover:shadow-none transition-all"
+            className="border-2 border-black shadow-neo-sm hover:translate-y-0.5 hover:shadow-none transition-all cursor-pointer"
             onClick={handleDelete}
         >
             <Trash2 className="h-4 w-4" />

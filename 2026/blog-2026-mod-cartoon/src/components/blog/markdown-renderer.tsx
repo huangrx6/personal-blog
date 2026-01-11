@@ -54,11 +54,11 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
                         );
                     },
 
-                    // Paragraphs
+                    // Paragraphs - using div to avoid hydration errors when nesting figures/images
                     p: ({ children }) => (
-                        <p className="text-lg leading-relaxed mb-4 text-black/80">
+                        <div className="text-lg leading-relaxed mb-4 text-black/80">
                             {children}
-                        </p>
+                        </div>
                     ),
 
                     // Links with underline animation

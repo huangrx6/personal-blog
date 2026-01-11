@@ -1,15 +1,7 @@
 import { AdminClientWrapper } from "@/components/admin/admin-client-wrapper";
-import { AdminHeader } from "@/components/admin/admin-header";
 import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
-import { Toaster } from "@/components/ui/toaster";
-import { getSiteSettings } from "@/lib/actions";
 import { auth } from "@/lib/auth/config";
 import { redirect } from "next/navigation";
-
-// Floating decorative shapes
-const FloatingShape = ({ className }: { className: string }) => (
-    <div className={className} />
-);
 
 export default async function AdminLayout({
     children,
@@ -17,7 +9,6 @@ export default async function AdminLayout({
     children: React.ReactNode;
 }) {
     const session = await auth();
-    const settings = await getSiteSettings();
 
     if (!session) {
         redirect("/login");
@@ -35,9 +26,6 @@ export default async function AdminLayout({
             />
 
             <ConfirmDialogProvider>
-                {/* Sticky Header with Settings */}
-                <AdminHeader settings={settings} />
-
                 {/* Main Content Container */}
                 <div className="relative z-10 pb-28">
                     {/* Page Content with Navigation Provider */}
@@ -47,7 +35,6 @@ export default async function AdminLayout({
                         </main>
                     </AdminClientWrapper>
                 </div>
-                <Toaster />
             </ConfirmDialogProvider>
         </div>
     );

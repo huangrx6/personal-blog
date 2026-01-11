@@ -1,21 +1,22 @@
 "use client";
 
+import { NeoPagination } from "@/components/ui/neo-pagination";
 import { getPublishedPosts } from "@/lib/actions";
 import { Category, Post } from "@prisma/client";
-import { ArrowRight, Loader2, Search, Tag, X } from "lucide-react";
+import { ArrowRight, Search, Tag, X } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 // Extended Post type to includes category
-type PostWithCategory = Post & { category: Category | null };
+type PostWithCategory = Post & { category: Category | null; coverImage?: string | null };
 
 interface BlogClientProps {
     initialPosts: PostWithCategory[];
-    initialHasMore: boolean;
+    initialTotal: number;
     categories: Category[];
 }
 
-export function BlogClient({ initialPosts, initialHasMore, categories }: BlogClientProps) {
+export function BlogClient({ initialPosts, initialTotal, categories }: BlogClientProps) {
     // Search & Filter State
     const [searchQuery, setSearchQuery] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -23,10 +24,18 @@ export function BlogClient({ initialPosts, initialHasMore, categories }: BlogCli
 
     // Data State
     const [posts, setPosts] = useState<PostWithCategory[]>(initialPosts);
-    const [hasMore, setHasMore] = useState(initialHasMore);
+    // const [hasMore, setHasMore] = useState(initialHasMore);
+    const [total, setTotal] = useState(0); // We need total count passed from server or implied
     const [page, setPage] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [isInitialLoad, setIsInitialLoad] = useState(false);
+
+    // Hardcoded limit match server default
+    const LIMIT = 6;
+    // We might need to fetch total count if not provided in props.
+    // Assuming initialHasMore is not enough for pagination.
+    // For now, let's fetch total when we filter.
+    const [totalPages, setTotalPages] = useState(Math.ceil(initialTotal / LIMIT));
 
     // Debounce Search
     useEffect(() => {
@@ -42,7 +51,8 @@ export function BlogClient({ initialPosts, initialHasMore, categories }: BlogCli
             setIsLoading(true);
             const res = await getPublishedPosts(1, 6, selectedCategory, debouncedSearch);
             setPosts(res.posts as PostWithCategory[]);
-            setHasMore(res.hasMore);
+            // setHasMore(res.hasMore);
+            setTotalPages(Math.ceil(res.total / 6));
             setPage(1);
             setIsLoading(false);
         }
@@ -57,32 +67,16 @@ export function BlogClient({ initialPosts, initialHasMore, categories }: BlogCli
 
 
     // Load More Function
-    const loadMore = async () => {
-        if (isLoading || !hasMore) return;
+    const handlePageChange = async (newPage: number) => {
         setIsLoading(true);
-        const nextPage = page + 1;
-        const res = await getPublishedPosts(nextPage, 6, selectedCategory, debouncedSearch);
-
-        setPosts(prev => [...prev, ...res.posts as PostWithCategory[]]);
-        setHasMore(res.hasMore);
-        setPage(nextPage);
+        const res = await getPublishedPosts(newPage, 6, selectedCategory, debouncedSearch);
+        setPosts(res.posts as PostWithCategory[]);
+        setPage(newPage);
         setIsLoading(false);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // Intersection Observer for Infinite Scroll
-    const observerRef = useRef<IntersectionObserver | null>(null);
-    const loadMoreTriggerRef = useCallback((node: HTMLDivElement | null) => {
-        if (isLoading) return;
-        if (observerRef.current) observerRef.current.disconnect();
 
-        observerRef.current = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting && hasMore) {
-                loadMore();
-            }
-        });
-
-        if (node) observerRef.current.observe(node);
-    }, [isLoading, hasMore, page, selectedCategory, debouncedSearch]);
 
 
     const formatDate = (date: Date) => {
@@ -126,8 +120,8 @@ export function BlogClient({ initialPosts, initialHasMore, categories }: BlogCli
                         <button
                             onClick={() => setSelectedCategory(null)}
                             className={`px-4 py-2 rounded-full border-2 font-bold text-sm transition-all cursor-pointer ${selectedCategory === null
-                                    ? "bg-black text-white border-black shadow-neo-sm hover:-translate-y-0.5"
-                                    : "bg-white text-black border-black hover:bg-gray-100"
+                                ? "bg-black text-white border-black shadow-neo-sm hover:-translate-y-0.5"
+                                : "bg-white text-black border-black hover:bg-gray-100"
                                 }`}
                         >
                             全部
@@ -137,8 +131,8 @@ export function BlogClient({ initialPosts, initialHasMore, categories }: BlogCli
                                 key={cat.id}
                                 onClick={() => setSelectedCategory(cat.id)}
                                 className={`px-4 py-2 rounded-full border-2 font-bold text-sm transition-all flex items-center gap-1 cursor-pointer ${selectedCategory === cat.id
-                                        ? "text-white border-black shadow-neo-sm -translate-y-0.5"
-                                        : "bg-white text-black border-black hover:bg-gray-50"
+                                    ? "text-white border-black shadow-neo-sm -translate-y-0.5"
+                                    : "bg-white text-black border-black hover:bg-gray-50"
                                     }`}
                                 style={{
                                     backgroundColor: selectedCategory === cat.id ? cat.color : 'white',
@@ -168,81 +162,94 @@ export function BlogClient({ initialPosts, initialHasMore, categories }: BlogCli
                         </div>
                     </div>
                 ) : (
-                    <div className="space-y-8">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {posts.map((post) => (
-                                <Link
-                                    key={post.id}
-                                    href={`/blog/${post.slug}`}
-                                    className="group relative block bg-white border-4 border-black rounded-3xl shadow-neo hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all duration-200 overflow-hidden flex flex-col h-full"
-                                >
-                                    {/* Category Badge */}
-                                    <div className="absolute top-4 right-4 z-10 pointer-events-none">
-                                        {post.category ? (
-                                            <span
-                                                className="inline-flex items-center gap-1 border-2 border-black px-3 py-1 rounded-full text-xs font-black uppercase shadow-neo-sm"
-                                                style={{ backgroundColor: post.category.color, color: 'white' }}
-                                            >
-                                                <Tag size={12} />
-                                                {post.category.name}
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1 bg-gray-200 border-2 border-black px-3 py-1 rounded-full text-xs font-bold uppercase shadow-neo-sm">
-                                                Uncategorized
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    {/* Placeholder for Thumbnail */}
-                                    <div className="h-48 bg-purple-100 border-b-4 border-black flex items-center justify-center group-hover:bg-[#A855F7] transition-colors relative overflow-hidden">
-                                        <div className="text-6xl font-black text-black/5 group-hover:text-white/20 transition-colors uppercase tracking-tighter">
-                                            {post.category?.name || "Blog"}
-                                        </div>
-                                    </div>
-
-                                    {/* Content */}
-                                    <div className="p-6 flex-1 flex flex-col">
-                                        <div className="text-xs font-bold text-black/40 mb-3 font-mono uppercase tracking-wider flex items-center gap-2">
-                                            <span>{formatDate(post.createdAt)}</span>
-                                            <span className="w-1 h-1 rounded-full bg-black/20" />
-                                            <span>{post.authorId ? 'ADMIN' : 'GUEST'}</span>
+                    <div className="space-y-12">
+                        {isLoading ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 opacity-50 pointer-events-none">
+                                {/* Loading Skeleton Placeholder - repurposing existing posts for skeleton look if available, else standard loader */}
+                                {Array.from({ length: 6 }).map((_, i) => (
+                                    <div key={i} className="h-[500px] bg-gray-100 rounded-3xl border-4 border-black border-dashed animate-pulse" />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-in fade-in duration-500">
+                                {posts.map((post) => (
+                                    <Link
+                                        key={post.id}
+                                        href={`/blog/${post.slug}`}
+                                        className="group relative block bg-white border-4 border-black rounded-3xl shadow-neo hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all duration-200 overflow-hidden flex flex-col h-full"
+                                    >
+                                        {/* Category Badge */}
+                                        <div className="absolute top-4 right-4 z-10 pointer-events-none">
+                                            {post.category ? (
+                                                <span
+                                                    className="inline-flex items-center gap-1 border-2 border-black px-3 py-1 rounded-full text-xs font-black uppercase shadow-neo-sm"
+                                                    style={{ backgroundColor: post.category.color, color: 'white' }}
+                                                >
+                                                    <Tag size={12} />
+                                                    {post.category.name}
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 bg-gray-200 border-2 border-black px-3 py-1 rounded-full text-xs font-bold uppercase shadow-neo-sm">
+                                                    Uncategorized
+                                                </span>
+                                            )}
                                         </div>
 
-                                        <h2 className="text-2xl font-black mb-4 line-clamp-2 leading-tight group-hover:underline decoration-4 underline-offset-4 decoration-primary">
-                                            {post.title}
-                                        </h2>
+                                        {/* Cover Image */}
+                                        <div className="aspect-[16/9] w-full bg-gray-100 border-b-4 border-black relative overflow-hidden group-hover:bg-primary/5 transition-colors">
+                                            {post.coverImage ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img
+                                                    src={post.coverImage}
+                                                    alt={post.title}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center bg-gray-50 group-hover:bg-yellow-400 transition-colors">
+                                                    <div className="text-4xl font-black text-black/10 uppercase tracking-tighter">
+                                                        {post.category?.name || "BLOG"}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
 
-                                        <p className="text-black/70 mb-6 line-clamp-3 font-medium flex-1">
-                                            {post.content.slice(0, 100).replace(/[#*`]/g, '')}...
-                                        </p>
+                                        {/* Content */}
+                                        <div className="p-6 flex-1 flex flex-col">
+                                            <div className="text-xs font-bold text-black/40 mb-3 font-mono uppercase tracking-wider flex items-center gap-2">
+                                                <span>{formatDate(post.createdAt)}</span>
+                                                <span className="w-1 h-1 rounded-full bg-black/20" />
+                                                <span>{post.authorId ? 'ADMIN' : 'GUEST'}</span>
+                                            </div>
 
-                                        <div className="mt-auto pt-5 border-t-2 border-dashed border-black/10 flex items-center justify-between">
-                                            <span className="font-black text-sm uppercase tracking-wide bg-primary/0 group-hover:bg-primary/20 px-2 -ml-2 rounded-lg transition-all py-1">
-                                                Read Article
-                                            </span>
-                                            <div className="w-8 h-8 rounded-full border-2 border-black flex items-center justify-center bg-white group-hover:bg-black group-hover:text-white transition-colors">
-                                                <ArrowRight className="w-4 h-4" />
+                                            <h2 className="text-2xl font-black mb-4 line-clamp-2 leading-tight group-hover:underline decoration-4 underline-offset-4 decoration-primary">
+                                                {post.title}
+                                            </h2>
+
+                                            <p className="text-black/70 mb-6 line-clamp-3 font-medium flex-1">
+                                                {post.content.slice(0, 100).replace(/[#*`]/g, '')}...
+                                            </p>
+
+                                            <div className="mt-auto pt-5 border-t-2 border-dashed border-black/10 flex items-center justify-between">
+                                                <span className="font-black text-sm uppercase tracking-wide bg-primary/0 group-hover:bg-primary/20 px-2 -ml-2 rounded-lg transition-all py-1">
+                                                    Read Article
+                                                </span>
+                                                <div className="w-8 h-8 rounded-full border-2 border-black flex items-center justify-center bg-white group-hover:bg-black group-hover:text-white transition-colors">
+                                                    <ArrowRight className="w-4 h-4" />
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
 
-                        {/* Loading / End Indicators */}
-                        <div ref={loadMoreTriggerRef} className="py-10 flex flex-col items-center justify-center min-h-[100px]">
-                            {isLoading && (
-                                <div className="flex items-center gap-2 text-black/50 font-bold animate-pulse">
-                                    <Loader2 className="w-6 h-6 animate-spin" />
-                                    <span>Loading more...</span>
-                                </div>
-                            )}
-
-                            {!hasMore && posts.length > 0 && (
-                                <div className="text-black/40 font-bold bg-gray-100 px-6 py-2 rounded-full border-2 border-black/10 border-dashed">
-                                    已经到底啦 🚀
-                                </div>
-                            )}
+                        {/* Pagination */}
+                        <div className="pt-8">
+                            <NeoPagination
+                                currentPage={page}
+                                totalPages={totalPages}
+                                onPageChange={handlePageChange}
+                            />
                         </div>
                     </div>
                 )}

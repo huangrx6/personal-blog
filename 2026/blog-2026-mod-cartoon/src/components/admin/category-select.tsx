@@ -31,9 +31,9 @@ export function CategorySelect({ categories, value, onChange, name }: CategorySe
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
-
+    
     return (
-        <div ref={containerRef} className="relative">
+        <div ref={containerRef} className="relative w-full">
             {/* Hidden input for form submission */}
             <input type="hidden" name={name} value={value} />
 
@@ -41,7 +41,7 @@ export function CategorySelect({ categories, value, onChange, name }: CategorySe
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full max-w-xs flex items-center justify-between gap-3 px-4 py-3 bg-white border-2 border-black/20 rounded-xl font-medium hover:border-black focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-white border-2 border-black rounded-xl font-medium hover:bg-gray-50 focus:outline-none focus:ring-0 focus:shadow-neo transition-all"
             >
                 <div className="flex items-center gap-3">
                     {selectedCategory ? (
@@ -64,7 +64,7 @@ export function CategorySelect({ categories, value, onChange, name }: CategorySe
 
             {/* Dropdown */}
             {isOpen && (
-                <div className="absolute top-full left-0 mt-2 w-full max-w-xs bg-white border-2 border-black rounded-xl shadow-neo overflow-hidden z-50">
+                <div className="absolute top-full left-0 mt-2 w-full bg-white border-2 border-black rounded-xl shadow-neo overflow-hidden z-50 max-h-60 overflow-y-auto">
                     {/* No Category Option */}
                     <button
                         type="button"
@@ -117,4 +117,5 @@ export function CategorySelect({ categories, value, onChange, name }: CategorySe
             )}
         </div>
     );
+
 }

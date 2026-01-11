@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useTransition } from "react"
-import { updatePostStatus } from "@/actions/post-status"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { updatePostStatus } from "@/actions/post-status";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useState, useTransition } from "react";
 
-type StatusType = "DRAFT" | "PUBLISHED" | "OFFLINE";
+export type StatusType = "DRAFT" | "PUBLISHED" | "OFFLINE";
 
 interface PublishToggleButtonProps {
     postId: string;
@@ -29,9 +29,9 @@ export function PublishToggleButton({ postId, initialStatus }: PublishToggleButt
         <button
             onClick={togglePublish}
             disabled={isPending}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border-2 ${isPublished
-                    ? "bg-secondary/20 text-secondary border-secondary/30 hover:bg-secondary hover:text-white hover:border-secondary"
-                    : "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200"
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border-2 cursor-pointer ${isPublished
+                ? "bg-secondary/20 text-secondary border-secondary/30 hover:bg-secondary hover:text-white hover:border-secondary"
+                : "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200"
                 } ${isPending ? "opacity-50 cursor-not-allowed" : ""}`}
         >
             {isPending ? (

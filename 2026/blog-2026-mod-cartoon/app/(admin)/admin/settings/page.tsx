@@ -1,27 +1,25 @@
 "use client";
 
+import { useAdminActions } from "@/components/admin/admin-action-context";
 import { ArrayEditor, IconSelector } from "@/components/admin/ArrayEditor";
+import { SettingsHeroDoodle } from "@/components/admin/settings-hero-doodle";
 
 export const dynamic = 'force-dynamic';
 
-import { SettingsHeroDoodle } from "@/components/admin/settings-hero-doodle";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 // import { FloatingShapes } from "@/components/ui/floating-shapes";
 import { NeoSelect } from "@/components/ui/neo-select";
 import { motion } from "framer-motion";
 import {
     Check,
-    FileText,
     Github,
     LayoutTemplate,
     Loader2,
-    Mail,
     MessageSquare,
     Palette,
     RotateCcw,
     Save,
     Settings2, Sparkles,
-    Twitter,
     User
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -90,6 +88,7 @@ export default function SettingsPage() {
 
     // Hooks
     const { confirm } = useConfirmDialog();
+    const { setActions } = useAdminActions();
 
     // Deep compare check (simple JSON stringify is enough for this size)
     const isDirty = JSON.stringify(settings) !== JSON.stringify(originalSettings);
@@ -100,7 +99,6 @@ export default function SettingsPage() {
                 const response = await fetch('/api/settings');
                 if (response.ok) {
                     const data = await response.json();
-                    // Merge with defaults to ensure all fields exist
                     setSettings({ ...defaultSettings, ...data });
                     setOriginalSettings({ ...defaultSettings, ...data });
                 }
@@ -150,14 +148,6 @@ export default function SettingsPage() {
 
         if (confirmed) {
             setSettings(defaultSettings);
-
-            // Optional: Immediately save reset state or just let user save manually?
-            // Usually reset implies resetting to defaults locally, letting user decide to save.
-            // But code logic was saving immediately. Let's keep it consistent but maybe ask user?
-            // Actually, let's just reset local state to default and let them click save if they want, 
-            // OR fully reset backend too. The original code reset backend too.
-            // Let's stick to original behavior but add toast.
-
             try {
                 await fetch('/api/settings', {
                     method: 'POST',
@@ -176,39 +166,106 @@ export default function SettingsPage() {
         setSettings(prev => ({ ...prev, [key]: value }));
     };
 
+    // Inject actions into AdminDock for Mobile
+    useEffect(() => {
+        setActions(
+            <>
+                {isDirty && (
+                    <div className="text-[10px] font-bold text-red-500 uppercase text-center mb-1 animate-pulse">
+                        Unsaved Changes
+                    </div>
+                )}
+                <button
+                    onClick={handleSave}
+                    disabled={!isDirty || isSaving}
+                    className={`
+                        w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl font-black border-2 border-black transition-all text-sm
+                        ${isDirty
+                            ? "bg-[#FACC15] text-black shadow-neo hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5"
+                            : "bg-gray-100 text-black/30 border-black/10 cursor-not-allowed"
+                        }
+                    `}
+                >
+                    {isSaving ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                        <Save className="w-4 h-4" />
+                    )}
+                    <span>SAVE</span>
+                </button>
+
+                <button
+                    onClick={handleReset}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl border-2 border-black bg-white text-black text-sm hover:bg-gray-100 transition-colors"
+                >
+                    <RotateCcw className="w-4 h-4" />
+                    Reset
+                </button>
+            </>
+        );
+        return () => setActions(null);
+    }, [isDirty, isSaving]);
+
     return (
         <div className="space-y-8 relative min-h-[80vh] pb-24">
-            <SettingsHeroDoodle />
+            {/* Redesigned Hero Header */}
+            <div className="relative w-full bg-white border-4 border-black rounded-3xl overflow-hidden shadow-neo mb-10 min-h-[300px] md:min-h-[340px] flex flex-col md:flex-row group">
+                {/* Background Pattern */}
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                    style={{ backgroundImage: "radial-gradient(#000 2px, transparent 2px)", backgroundSize: "24px 24px" }}
+                />
 
-            {/* Header */}
-            {/* Header */}
-            {/* Header */}
-            <div className="flex flex-col gap-4 mb-10">
-                <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-black text-white rounded-2xl flex items-center justify-center shadow-neo transform -rotate-3">
-                        <Settings2 className="w-8 h-8 animate-spin-slow" />
+                {/* Left: Text Content */}
+                <div className="relative z-20 flex-1 p-10 md:p-16 flex flex-col justify-center items-start">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-black text-white text-xs font-bold rounded-full mb-6">
+                        <Settings2 className="w-3 h-3 animate-spin-slow" />
+                        <span>CONTROL PANEL</span>
                     </div>
-                    <div>
-                        <h1 className="text-4xl font-black uppercase tracking-tighter">
-                            系统设置
-                        </h1>
-                        <p className="font-bold text-black/60 mt-1">
-                            管理您的博客配置与个性化选项
-                        </p>
+
+                    <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-6 drop-shadow-sm">
+                        System
+                        <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#A855F7] to-[#3B82F6] [-webkit-text-stroke:2px_black]">
+                            Settings
+                        </span>
+                    </h1>
+
+                    <p className="font-bold text-black/60 md:text-lg max-w-md leading-relaxed">
+                        管理您的博客配置与个性化选项，构建独特的数字空间。
+                    </p>
+
+                    <div className="mt-8 flex items-center gap-3">
+                        <div className="px-3 py-1.5 bg-green-400 border-2 border-black text-xs font-black rounded-lg flex items-center gap-2 shadow-neo-sm">
+                            <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                            SYSTEM ONLINE
+                        </div>
+                        <div className="px-3 py-1.5 bg-white border-2 border-black text-xs font-bold rounded-lg shadow-neo-sm">
+                            v2.4.0
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right: Visuals (Doodle) */}
+                <div className="absolute inset-0 md:static md:w-1/2 overflow-visible md:overflow-hidden pointer-events-none">
+                    {/* Gradient Fade for text readability on mobile */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-white via-white/80 to-transparent md:hidden z-10" />
+
+                    {/* The Doodle Component - Positioned to interact with the card */}
+                    <div className="absolute right-[-10%] md:right-0 top-0 bottom-0 w-full md:w-full flex items-center justify-center transform scale-90 md:scale-100 origin-center">
+                        <SettingsHeroDoodle />
                     </div>
                 </div>
             </div>
 
-            <div className="space-y-6">
-
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-24">
+                {/* ... Main Content ... */}
                 {/* 1. Global Site Info */}
-                <section className="bg-white/90 backdrop-blur-sm border-4 border-black rounded-3xl p-8 shadow-neo relative z-40">
-                    <div className="flex items-center gap-4 mb-6 pb-6 border-b-2 border-black/5">
-                        <div className="w-12 h-12 bg-primary/20 rounded-xl border-2 border-black flex items-center justify-center">
-                            <User className="w-6 h-6 text-primary" />
+                <section className="lg:col-span-2 bg-white border-4 border-black rounded-3xl p-6 md:p-8 shadow-neo relative z-40">
+                    <div className="flex items-center gap-4 mb-6 pb-6 border-b-4 border-black/5">
+                        <div className="w-12 h-12 bg-primary text-white rounded-xl border-2 border-black flex items-center justify-center shadow-neo-sm">
+                            <User className="w-6 h-6" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-black">站点信息</h2>
+                            <h2 className="text-2xl font-black uppercase">站点信息</h2>
                             <p className="text-sm font-bold text-black/40">基础站点配置</p>
                         </div>
                     </div>
@@ -219,7 +276,7 @@ export default function SettingsPage() {
                                 type="text"
                                 value={settings.siteName}
                                 onChange={(e) => updateSetting('siteName', e.target.value)}
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-black/10 rounded-xl font-bold focus:border-black transition-colors outline-none"
+                                className="w-full px-4 py-3 bg-white border-2 border-black rounded-xl font-bold shadow-neo-sm focus:shadow-neo focus:translate-x-[2px] focus:translate-y-[2px] transition-all outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -228,7 +285,7 @@ export default function SettingsPage() {
                                 type="text"
                                 value={settings.author}
                                 onChange={(e) => updateSetting('author', e.target.value)}
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-black/10 rounded-xl font-bold focus:border-black transition-colors outline-none"
+                                className="w-full px-4 py-3 bg-white border-2 border-black rounded-xl font-bold shadow-neo-sm focus:shadow-neo focus:translate-x-[2px] focus:translate-y-[2px] transition-all outline-none"
                             />
                         </div>
                         <div className="space-y-2 md:col-span-2">
@@ -237,111 +294,161 @@ export default function SettingsPage() {
                                 value={settings.siteDescription}
                                 onChange={(e) => updateSetting('siteDescription', e.target.value)}
                                 rows={2}
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-black/10 rounded-xl font-bold focus:border-black transition-colors outline-none resize-none"
+                                className="w-full px-4 py-3 bg-white border-2 border-black rounded-xl font-bold shadow-neo-sm focus:shadow-neo focus:translate-x-[2px] focus:translate-y-[2px] transition-all outline-none resize-none"
                             />
                         </div>
                     </div>
                 </section>
 
-                {/* 2. Appearance & Features */}
-                <div className="grid lg:grid-cols-2 gap-6 relative z-30">
-                    <section className="bg-white/90 backdrop-blur-sm border-4 border-black rounded-3xl p-8 shadow-neo relative z-50">
-                        <div className="flex items-center gap-4 mb-6 pb-6 border-b-2 border-black/5">
-                            <div className="w-12 h-12 bg-accent/20 rounded-xl border-2 border-black flex items-center justify-center">
-                                <Palette className="w-6 h-6 text-accent" />
-                            </div>
-                            <div>
-                                <h2 className="text-2xl font-black">外观设置</h2>
-                                <p className="text-sm font-bold text-black/40">字体和视觉风格</p>
-                            </div>
+                {/* 2. Social Links */}
+                <section className="bg-white border-4 border-black rounded-3xl p-6 md:p-8 shadow-neo relative z-10 flex flex-col justify-center">
+                    <div className="flex items-center gap-4 mb-6 pb-6 border-b-4 border-black/5">
+                        <div className="w-12 h-12 bg-black text-white rounded-xl border-2 border-black flex items-center justify-center shadow-neo-sm">
+                            <Github className="w-6 h-6" />
                         </div>
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <label className="font-bold text-sm uppercase text-black/50">字体风格</label>
+                        <div>
+                            <h2 className="text-2xl font-black uppercase">社交链接</h2>
+                            <p className="text-sm font-bold text-black/40">联系方式</p>
+                        </div>
+                    </div>
+                    <div className="space-y-4">
+                        <div className="flex-1 space-y-1">
+                            <label className="text-xs font-bold opacity-40 uppercase">Github URL</label>
+                            <input
+                                value={settings.githubUrl}
+                                onChange={(e) => updateSetting('githubUrl', e.target.value)}
+                                placeholder="https://github.com/..."
+                                className="w-full px-3 py-2 bg-white border-2 border-black rounded-xl font-bold text-sm shadow-neo-sm focus:shadow-neo focus:translate-x-[1px] focus:translate-y-[1px] transition-all outline-none"
+                            />
+                        </div>
+                        <div className="flex-1 space-y-1">
+                            <label className="text-xs font-bold opacity-40 uppercase">Twitter / X URL</label>
+                            <input
+                                value={settings.twitterUrl}
+                                onChange={(e) => updateSetting('twitterUrl', e.target.value)}
+                                placeholder="https://twitter.com/..."
+                                className="w-full px-3 py-2 bg-white border-2 border-black rounded-xl font-bold text-sm shadow-neo-sm focus:shadow-neo focus:translate-x-[1px] focus:translate-y-[1px] transition-all outline-none"
+                            />
+                        </div>
+                        <div className="flex-1 space-y-1">
+                            <label className="text-xs font-bold opacity-40 uppercase">Email Address</label>
+                            <input
+                                value={settings.emailAddress}
+                                onChange={(e) => updateSetting('emailAddress', e.target.value)}
+                                placeholder="example@mail.com"
+                                className="w-full px-3 py-2 bg-white border-2 border-black rounded-xl font-bold text-sm shadow-neo-sm focus:shadow-neo focus:translate-x-[1px] focus:translate-y-[1px] transition-all outline-none"
+                            />
+                        </div>
+                        <div className="flex-1 space-y-1">
+                            <label className="text-xs font-bold opacity-40 uppercase">Resume URL</label>
+                            <input
+                                value={settings.resumeUrl}
+                                onChange={(e) => updateSetting('resumeUrl', e.target.value)}
+                                placeholder="https://.../resume.pdf"
+                                className="w-full px-3 py-2 bg-white border-2 border-black rounded-xl font-bold text-sm shadow-neo-sm focus:shadow-neo focus:translate-x-[1px] focus:translate-y-[1px] transition-all outline-none"
+                            />
+                        </div>
+                    </div>
+                </section>
 
-                                <NeoSelect
-                                    value={settings.fontStyle}
-                                    onChange={(val) => updateSetting('fontStyle', val)}
-                                    className="relative z-30"
-                                    options={[
-                                        { value: "system", label: "系统默认", description: "苹方/微软雅黑" },
-                                        { value: "comic", label: "Comic Style", description: "英文卡通风" },
-                                        { value: "zcool", label: "站酷快乐体", description: "可爱卡通风" },
-                                        { value: "mashan", label: "马善政毛笔", description: "手写书法风" },
-                                        { value: "longcang", label: "龙藏草书", description: "潇洒草书风" },
-                                    ]}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="font-bold text-sm uppercase text-black/50">鼠标特效</label>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => updateSetting('mouseFollowEnabled', !settings.mouseFollowEnabled)}
-                                        className={`px-4 py-2 border-2 rounded-lg font-bold ${settings.mouseFollowEnabled ? 'bg-black text-white border-black' : 'bg-gray-100 text-gray-500 border-transparent'}`}
-                                    >
-                                        {settings.mouseFollowEnabled ? '已开启' : '已关闭'}
-                                    </button>
-                                    {settings.mouseFollowEnabled && (
-                                        <div className="flex-1 min-w-[150px]">
-                                            <NeoSelect
-                                                value={settings.cursorStyle}
-                                                onChange={(val) => updateSetting('cursorStyle', val)}
-                                                options={cursorOptions.map(opt => ({
-                                                    value: opt.id,
-                                                    label: opt.name,
-                                                    emoji: opt.emoji,
-                                                    description: opt.description
-                                                }))}
-                                                placeholder="选择特效"
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                {/* 3. Appearance */}
+                <section className="bg-white border-4 border-black rounded-3xl p-6 md:p-8 shadow-neo relative z-50">
+                    <div className="flex items-center gap-4 mb-6 pb-6 border-b-4 border-black/5">
+                        <div className="w-12 h-12 bg-accent text-white rounded-xl border-2 border-black flex items-center justify-center shadow-neo-sm">
+                            <Palette className="w-6 h-6" />
                         </div>
-                    </section>
+                        <div>
+                            <h2 className="text-2xl font-black uppercase">外观设置</h2>
+                            <p className="text-sm font-bold text-black/40">字体和视觉风格</p>
+                        </div>
+                    </div>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <label className="font-bold text-sm uppercase text-black/50">字体风格</label>
 
-                    <section className="bg-white/90 backdrop-blur-sm border-4 border-black rounded-3xl p-8 shadow-neo relative z-40">
-                        <div className="flex items-center gap-4 mb-6 pb-6 border-b-2 border-black/5">
-                            <div className="w-12 h-12 bg-blue-100 rounded-xl border-2 border-black flex items-center justify-center">
-                                <MessageSquare className="w-6 h-6 text-blue-600" />
-                            </div>
-                            <div>
-                                <h2 className="text-2xl font-black">功能开关</h2>
-                                <p className="text-sm font-bold text-black/40">博客功能配置</p>
-                            </div>
+                            <NeoSelect
+                                value={settings.fontStyle}
+                                onChange={(val) => updateSetting('fontStyle', val)}
+                                className="relative z-30"
+                                options={[
+                                    { value: "system", label: "系统默认", description: "苹方/微软雅黑" },
+                                    { value: "comic", label: "Comic Style", description: "英文卡通风" },
+                                    { value: "zcool", label: "站酷快乐体", description: "可爱卡通风" },
+                                    { value: "mashan", label: "马善政毛笔", description: "手写书法风" },
+                                    { value: "longcang", label: "龙藏草书", description: "潇洒草书风" },
+                                ]}
+                            />
                         </div>
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border-2 border-black/5">
-                                <span className="font-bold">评论功能</span>
-                                <div
-                                    className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${settings.commentsEnabled ? 'bg-black' : 'bg-gray-300'}`}
-                                    onClick={() => updateSetting('commentsEnabled', !settings.commentsEnabled)}
+                        <div className="space-y-2">
+                            <label className="font-bold text-sm uppercase text-black/50">鼠标特效</label>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => updateSetting('mouseFollowEnabled', !settings.mouseFollowEnabled)}
+                                    className={`px-4 py-2 border-2 rounded-xl font-bold transition-all ${settings.mouseFollowEnabled ? 'bg-black text-white border-black shadow-neo-sm' : 'bg-gray-100 text-gray-500 border-transparent'}`}
                                 >
-                                    <motion.div className="absolute top-1 w-4 h-4 bg-white rounded-full" animate={{ left: settings.commentsEnabled ? '28px' : '4px' }} />
-                                </div>
-                            </div>
-                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border-2 border-black/5">
-                                <span className="font-bold">显示阅读时间</span>
-                                <div
-                                    className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${settings.showReadingTime ? 'bg-black' : 'bg-gray-300'}`}
-                                    onClick={() => updateSetting('showReadingTime', !settings.showReadingTime)}
-                                >
-                                    <motion.div className="absolute top-1 w-4 h-4 bg-white rounded-full" animate={{ left: settings.showReadingTime ? '28px' : '4px' }} />
-                                </div>
+                                    {settings.mouseFollowEnabled ? '已开启' : '已关闭'}
+                                </button>
+                                {settings.mouseFollowEnabled && (
+                                    <div className="flex-1 min-w-[150px]">
+                                        <NeoSelect
+                                            value={settings.cursorStyle}
+                                            onChange={(val) => updateSetting('cursorStyle', val)}
+                                            options={cursorOptions.map(opt => ({
+                                                value: opt.id,
+                                                label: opt.name,
+                                                emoji: opt.emoji,
+                                                description: opt.description
+                                            }))}
+                                            placeholder="选择特效"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    </section>
-                </div>
+                    </div>
+                </section>
 
-                {/* 3. About Page Configuration */}
-                <section className="bg-[#FACC15]/10 backdrop-blur-sm border-4 border-black rounded-3xl p-8 shadow-neo relative z-20">
-                    <div className="flex items-center gap-4 mb-6 pb-6 border-b-2 border-black/5">
-                        <div className="w-12 h-12 bg-[#FACC15] rounded-xl border-2 border-black flex items-center justify-center">
+                {/* 4. Features */}
+                <section className="bg-white border-4 border-black rounded-3xl p-6 md:p-8 shadow-neo relative z-40">
+                    <div className="flex items-center gap-4 mb-6 pb-6 border-b-4 border-black/5">
+                        <div className="w-12 h-12 bg-blue-100 rounded-xl border-2 border-black flex items-center justify-center shadow-neo-sm">
+                            <MessageSquare className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-black uppercase">功能开关</h2>
+                            <p className="text-sm font-bold text-black/40">博客功能配置</p>
+                        </div>
+                    </div>
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between p-4 bg-white rounded-xl border-2 border-black shadow-neo-sm">
+                            <span className="font-bold">评论功能</span>
+                            <div
+                                className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors border-2 border-black ${settings.commentsEnabled ? 'bg-black' : 'bg-gray-200'}`}
+                                onClick={() => updateSetting('commentsEnabled', !settings.commentsEnabled)}
+                            >
+                                <motion.div className="absolute top-0.5 w-4 h-4 bg-white rounded-full border border-black" animate={{ left: settings.commentsEnabled ? '26px' : '2px' }} />
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between p-4 bg-white rounded-xl border-2 border-black shadow-neo-sm">
+                            <span className="font-bold">显示阅读时间</span>
+                            <div
+                                className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors border-2 border-black ${settings.showReadingTime ? 'bg-black' : 'bg-gray-200'}`}
+                                onClick={() => updateSetting('showReadingTime', !settings.showReadingTime)}
+                            >
+                                <motion.div className="absolute top-0.5 w-4 h-4 bg-white rounded-full border border-black" animate={{ left: settings.showReadingTime ? '26px' : '2px' }} />
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* 5. About Page Configuration */}
+                <section className="lg:col-span-2 xl:col-span-3 bg-[#FACC15]/20 border-4 border-black rounded-3xl p-6 md:p-8 shadow-neo relative z-20">
+                    <div className="flex items-center gap-4 mb-6 pb-6 border-b-4 border-black/5">
+                        <div className="w-12 h-12 bg-[#FACC15] rounded-xl border-2 border-black flex items-center justify-center shadow-neo-sm">
                             <LayoutTemplate className="w-6 h-6 text-black" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-black">关于页面配置</h2>
+                            <h2 className="text-2xl font-black uppercase">关于页面配置</h2>
                             <p className="text-sm font-bold text-black/40">自定义 Hero 文本、技能列表和个性卡片</p>
                         </div>
                     </div>
@@ -357,7 +464,7 @@ export default function SettingsPage() {
                                         type="text"
                                         value={settings.aboutHeroTitle1}
                                         onChange={(e) => updateSetting('aboutHeroTitle1', e.target.value)}
-                                        className="w-full px-3 py-2 border-2 border-black/10 rounded-lg font-bold"
+                                        className="w-full px-3 py-2 bg-white border-2 border-black rounded-lg font-bold shadow-neo-sm focus:shadow-neo transition-all outline-none"
                                     />
                                 </div>
                                 <div className="space-y-1">
@@ -366,7 +473,7 @@ export default function SettingsPage() {
                                         type="text"
                                         value={settings.aboutHeroTitle2}
                                         onChange={(e) => updateSetting('aboutHeroTitle2', e.target.value)}
-                                        className="w-full px-3 py-2 border-2 border-black/10 rounded-lg font-bold text-[#A855F7]"
+                                        className="w-full px-3 py-2 bg-white border-2 border-black rounded-lg font-bold text-[#A855F7] shadow-neo-sm focus:shadow-neo transition-all outline-none"
                                     />
                                 </div>
                             </div>
@@ -376,7 +483,7 @@ export default function SettingsPage() {
                                     value={settings.aboutHeroDescription}
                                     onChange={(e) => updateSetting('aboutHeroDescription', e.target.value)}
                                     rows={3}
-                                    className="w-full px-3 py-2 border-2 border-black/10 rounded-lg font-bold resize-none"
+                                    className="w-full px-3 py-2 bg-white border-2 border-black rounded-lg font-bold shadow-neo-sm focus:shadow-neo transition-all outline-none resize-none"
                                 />
                             </div>
                         </div>
@@ -414,7 +521,7 @@ export default function SettingsPage() {
                                             <textarea
                                                 value={item.desc}
                                                 onChange={(e) => update('desc', e.target.value)}
-                                                className="w-full text-sm font-bold bg-gray-50 border-2 border-transparent focus:border-black/10 focus:bg-white rounded-xl p-3 outline-none resize-none transition-all"
+                                                className="w-full text-sm font-bold bg-white border-2 border-black rounded-xl p-3 shadow-neo-sm focus:shadow-neo outline-none resize-none transition-all"
                                                 rows={2}
                                                 placeholder="技能描述..."
                                             />
@@ -427,7 +534,7 @@ export default function SettingsPage() {
                                                     Icon
                                                     <span className="bg-black text-white text-[10px] px-1.5 py-0.5 rounded-full">{item.icon}</span>
                                                 </label>
-                                                <div className="p-3 bg-gray-50 rounded-xl border-2 border-black/5">
+                                                <div className="p-3 bg-white rounded-xl border-2 border-black shadow-neo-sm">
                                                     <IconSelector value={item.icon} onChange={(val) => update('icon', val)} />
                                                 </div>
                                             </div>
@@ -465,7 +572,7 @@ export default function SettingsPage() {
                             renderItem={(item, index, update) => (
                                 <div className="flex flex-col md:flex-row gap-6">
                                     {/* Left Column: Style Controls */}
-                                    <div className="w-full md:w-48 space-y-3 p-4 bg-gray-50 rounded-xl border-2 border-black/5 h-fit">
+                                    <div className="w-full md:w-48 space-y-3 p-4 bg-white rounded-xl border-2 border-black h-fit shadow-neo-sm">
                                         <h4 className="font-bold text-xs uppercase opacity-40 mb-2">Card Style</h4>
                                         <div>
                                             <label className="text-xs font-bold opacity-50 block mb-1">Color (Tailwind)</label>
@@ -521,7 +628,6 @@ export default function SettingsPage() {
                                                     { value: "text-red-500", label: "Red", emoji: "🔴" },
                                                 ]}
                                             />
-
                                         </div>
                                         <div>
                                             <label className="text-xs font-bold opacity-50 block mb-1">Rotation (°)</label>
@@ -529,7 +635,7 @@ export default function SettingsPage() {
                                                 type="number"
                                                 value={item.rot}
                                                 onChange={(e) => update('rot', Number(e.target.value))}
-                                                className="w-full px-3 py-2 bg-white border-2 border-black/10 rounded-lg font-mono text-xs focus:border-black outline-none"
+                                                className="w-full px-3 py-2 bg-white border-2 border-black rounded-lg font-mono text-xs focus:border-black outline-none shadow-neo-sm"
                                             />
                                         </div>
                                     </div>
@@ -550,14 +656,14 @@ export default function SettingsPage() {
                                             <textarea
                                                 value={item.desc}
                                                 onChange={(e) => update('desc', e.target.value)}
-                                                className="w-full text-sm font-bold bg-white border-2 border-black/10 focus:border-black rounded-xl p-3 outline-none resize-none"
+                                                className="w-full text-sm font-bold bg-white border-2 border-black rounded-xl p-3 shadow-neo-sm focus:shadow-neo outline-none resize-none"
                                                 rows={2}
                                                 placeholder="卡片描述"
                                             />
                                         </div>
                                         <div className="space-y-1">
                                             <label className="text-xs font-bold opacity-40 uppercase">Icon</label>
-                                            <div className="p-3 bg-gray-50 rounded-xl border-2 border-black/5">
+                                            <div className="p-3 bg-white rounded-xl border-2 border-black shadow-neo-sm">
                                                 <IconSelector value={item.icon} onChange={(val) => update('icon', val)} />
                                             </div>
                                         </div>
@@ -568,111 +674,54 @@ export default function SettingsPage() {
                     </div>
                 </section>
 
-                {/* Social Links (Reduced priority) */}
-                <section className="bg-white/90 backdrop-blur-sm border-4 border-black rounded-3xl p-8 shadow-neo relative z-10">
-                    <div className="flex items-center gap-4 mb-6 pb-6 border-b-2 border-black/5">
-                        <h2 className="text-xl font-black opacity-50">社交链接</h2>
-                    </div>
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center shrink-0">
-                                <Github className="w-5 h-5" />
-                            </div>
-                            <div className="flex-1 space-y-1">
-                                <label className="text-xs font-bold opacity-40 uppercase">Github URL</label>
-                                <input
-                                    value={settings.githubUrl}
-                                    onChange={(e) => updateSetting('githubUrl', e.target.value)}
-                                    placeholder="https://github.com/..."
-                                    className="w-full bg-gray-50 border-2 border-black/5 focus:border-black px-4 py-2 rounded-lg font-bold text-sm outline-none transition-colors"
-                                />
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center shrink-0">
-                                <Twitter className="w-5 h-5" />
-                            </div>
-                            <div className="flex-1 space-y-1">
-                                <label className="text-xs font-bold opacity-40 uppercase">Twitter / X URL</label>
-                                <input
-                                    value={settings.twitterUrl}
-                                    onChange={(e) => updateSetting('twitterUrl', e.target.value)}
-                                    placeholder="https://twitter.com/..."
-                                    className="w-full bg-gray-50 border-2 border-black/5 focus:border-black px-4 py-2 rounded-lg font-bold text-sm outline-none transition-colors"
-                                />
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center shrink-0">
-                                <Mail className="w-5 h-5" />
-                            </div>
-                            <div className="flex-1 space-y-1">
-                                <label className="text-xs font-bold opacity-40 uppercase">Email Address</label>
-                                <input
-                                    value={settings.emailAddress}
-                                    onChange={(e) => updateSetting('emailAddress', e.target.value)}
-                                    placeholder="example@mail.com"
-                                    className="w-full bg-gray-50 border-2 border-black/5 focus:border-black px-4 py-2 rounded-lg font-bold text-sm outline-none transition-colors"
-                                />
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center shrink-0">
-                                <FileText className="w-5 h-5" />
-                            </div>
-                            <div className="flex-1 space-y-1">
-                                <label className="text-xs font-bold opacity-40 uppercase">Resume URL</label>
-                                <input
-                                    value={settings.resumeUrl}
-                                    onChange={(e) => updateSetting('resumeUrl', e.target.value)}
-                                    placeholder="https://.../resume.pdf"
-                                    className="w-full bg-gray-50 border-2 border-black/5 focus:border-black px-4 py-2 rounded-lg font-bold text-sm outline-none transition-colors"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
             </div>
 
-            {/* Floating Action Bar */}
-            <div className="fixed bottom-36 md:bottom-8 w-[90%] md:w-auto left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-8 z-50 flex items-center justify-between md:justify-start gap-3 p-2 pl-4 bg-black/90 backdrop-blur-xl text-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.3)] border border-white/10 transition-all duration-300">
-                <div className="flex flex-col mr-4">
-                    <span className="text-sm font-bold">
-                        {isDirty ? "未保存更改" : "系统就绪"}
-                    </span>
-                    <span className="text-xs text-white/50">
-                        {isDirty ? "请保存您的修改" : "所有设置已是最新"}
-                    </span>
-                </div>
-
-                <div className="h-8 w-[1px] bg-white/20 mx-1" />
+            {/* Anime Style Floating Action Bar - Desktop Only */}
+            <motion.div
+                initial={{ y: 100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="hidden md:flex fixed bottom-6 right-6 md:right-12 z-[100] items-center gap-3 p-2 bg-white border-4 border-black rounded-2xl shadow-neo-lg"
+            >
+                {isDirty && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="hidden md:flex flex-col mr-2 px-2"
+                    >
+                        <span className="text-xs font-black uppercase text-red-500">Unsaved Changes</span>
+                        <span className="text-[10px] font-bold text-black/40">记得保存哦!</span>
+                    </motion.div>
+                )}
 
                 <button
                     onClick={handleReset}
-                    className="px-4 py-2 rounded-xl text-sm font-bold hover:bg-white/10 text-white/70 hover:text-white transition-colors flex items-center gap-2"
+                    className="w-10 h-10 flex items-center justify-center rounded-xl border-2 border-black bg-white text-black hover:bg-gray-100 transition-colors"
+                    title="重置"
                 >
-                    <RotateCcw className="w-4 h-4" />
-                    重置
+                    <RotateCcw className="w-5 h-5" />
                 </button>
+
+                <div className="w-px h-8 bg-black/10 mx-1" />
 
                 <button
                     onClick={handleSave}
                     disabled={!isDirty || isSaving}
-                    className={`px-6 py-2 rounded-xl font-bold text-sm shadow-lg transform transition-all flex items-center gap-2
+                    className={`
+                        flex items-center gap-2 px-6 py-2 rounded-xl font-black border-2 border-black transition-all
                         ${isDirty
-                            ? "bg-[#FACC15] hover:bg-[#FACC15]/90 text-black hover:-translate-y-0.5"
-                            : "bg-white/10 text-white/30 cursor-not-allowed"
-                        }`}
+                            ? "bg-[#FACC15] text-black shadow-neo hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5"
+                            : "bg-gray-100 text-black/30 border-black/10 cursor-not-allowed"
+                        }
+                    `}
                 >
                     {isSaving ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (
-                        <Save className="w-4 h-4" />
+                        <Save className="w-5 h-5" />
                     )}
-                    Save Changes
+                    <span>SAVE</span>
                 </button>
-            </div>
+            </motion.div>
         </div>
     );
 }

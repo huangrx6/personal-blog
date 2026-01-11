@@ -31,6 +31,7 @@ export async function createPost(prevState: PostState, formData: FormData) {
     const title = formData.get("title") as string
     const slug = formData.get("slug") as string
     const content = formData.get("content") as string
+    const coverImage = formData.get("coverImage") as string
     // Handle categoryId: convert empty string to null
     const rawCategoryId = formData.get("categoryId") as string
     const categoryId = rawCategoryId && rawCategoryId !== "" ? rawCategoryId : null
@@ -70,6 +71,7 @@ export async function createPost(prevState: PostState, formData: FormData) {
                 content,
                 status: published ? "PUBLISHED" : "DRAFT",
                 authorId: user.id,
+                coverImage: coverImage || null,
                 categoryId // Pass undefined/null if empty
             }
         })
@@ -90,6 +92,7 @@ export async function updatePost(id: string, prevState: PostState, formData: For
     const title = formData.get("title") as string
     const slug = formData.get("slug") as string
     const content = formData.get("content") as string
+    const coverImage = formData.get("coverImage") as string
     const categoryId = formData.get("categoryId") as string
 
     if (!title || !slug || !content) {
@@ -103,6 +106,7 @@ export async function updatePost(id: string, prevState: PostState, formData: For
                 title,
                 slug,
                 content,
+                coverImage: coverImage || null,
                 categoryId: categoryId || null
             }
         })
@@ -164,3 +168,44 @@ export async function togglePublish(id: string) {
 
 // Helper to parse Markdown file on client or server
 // We will do client-side reading to populate form, but this action is just a placeholder if we need it.
+
+export async function getPosts(page = 1, limit = 10, search?: string, status?: string) {
+    const session = await auth();
+    if (!session?.user?.email) return { data: [], total: 0, totalPages: 0 };
+
+    try {
+        const skip = (page - 1) * limit;
+        const where: any = {};
+
+        if (search) {
+            where.title = { contains: search };
+        }
+
+        if (status && status !== 'all') {
+            where.status = status;
+        }
+
+        const [posts, total] = await prisma.$transaction([
+            prisma.post.findMany({
+                where,
+                take: limit,
+                skip,
+                orderBy: { updatedAt: 'desc' },
+                include: {
+                    category: true,
+                    author: { select: { name: true, image: true } }
+                }
+            }),
+            prisma.post.count({ where })
+        ]);
+
+        return {
+            data: posts,
+            total,
+            totalPages: Math.ceil(total / limit)
+        };
+    } catch (error) {
+        console.error("Failed to fetch posts:", error);
+        return { data: [], total: 0, totalPages: 0 };
+    }
+}

@@ -20,12 +20,12 @@ export default async function AboutPage() {
 
     // Transform to simple object to avoid date serialization issues if any (though here we just pass primitives/json)
     const plainSettings = {
-        aboutHeroTitle1: settings.aboutHeroTitle1,
-        aboutHeroTitle2: settings.aboutHeroTitle2,
-        aboutHeroDescription: settings.aboutHeroDescription,
-        aboutSkills: settings.aboutSkills as any[], // Cast JSON
-        aboutVibeCards: settings.aboutVibeCards as any[], // Cast JSON
-        githubUrl: settings.githubUrl,
+        aboutHeroTitle1: (settings as any)?.aboutHeroTitle1,
+        aboutHeroTitle2: (settings as any)?.aboutHeroTitle2,
+        aboutHeroDescription: (settings as any)?.aboutHeroDescription,
+        aboutSkills: (settings as any)?.aboutSkills as any[], // Cast JSON
+        aboutVibeCards: (settings as any)?.aboutVibeCards as any[], // Cast JSON
+        githubUrl: (settings as any)?.githubUrl,
     };
 
     return <AboutClient settings={plainSettings} />;
