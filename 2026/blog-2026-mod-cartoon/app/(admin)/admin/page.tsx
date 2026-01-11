@@ -1,5 +1,6 @@
 import { FloatingShapes } from "@/components/ui/floating-shapes";
 import { prisma } from "@/lib/db/prisma";
+import { PostStatus } from "@prisma/client";
 import { ArrowRight, CheckCircle2, Clock, FileEdit, FileText, Plus, Sparkles, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
@@ -127,7 +128,7 @@ export default async function AdminDashboard() {
                                 <p className="text-black/50 font-medium">还没有文章，开始创作吧！</p>
                             </div>
                         ) : (
-                            recentPosts.map((post) => (
+                            recentPosts.map((post: { id: string; title: string; status: PostStatus; createdAt: Date }) => (
                                 <Link
                                     key={post.id}
                                     href={`/admin/posts/${post.id}/preview`}
